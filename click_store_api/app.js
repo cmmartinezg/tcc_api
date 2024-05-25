@@ -1,27 +1,21 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const pool = require('./conexionDB');
-
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middlewares
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 
-// Rutas
-const userRoutes = require('./routes/usuario');
-const productRoutes = require('./routes/producto');
-const orderRoutes = require('./routes/orden_servicio');
+const comerciantesRouter = require('./routes/comerciantes');
+const productosRouter = require('./routes/productos');
+const clicsProductosRouter = require('./routes/clics_productos');
+const usuariosRouter = require('./routes/usuarios');
+const comprasRouter = require('./routes/compras');
 
-// Usar Rutas
-app.use('/api/usuarios', userRoutes);
-app.use('/api/productos', productRoutes);
-app.use('/api/ordenes', orderRoutes);
+app.use('/api/comerciantes', comerciantesRouter);
+app.use('/api/productos', productosRouter);
+app.use('/api/clics_productos', clicsProductosRouter);
+app.use('/api/usuarios', usuariosRouter);
+app.use('/api/compras', comprasRouter);
 
-// Iniciar Servidor
 app.listen(port, () => {
   console.log(`Servidor corriendo en el puerto ${port}`);
 });
-
-module.exports = app;

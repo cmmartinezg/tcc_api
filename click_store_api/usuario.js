@@ -14,9 +14,12 @@ router.get('/', async (req, res) => {
 
 // Crear un nuevo usuario
 router.post('/', async (req, res) => {
-  const { nombre, email, password } = req.body;
+  const { nombre, email, contraseña, direccion, telefono } = req.body;
   try {
-    const result = await pool.query('INSERT INTO usuarios (nombre, email, password) VALUES ($1, $2, $3) RETURNING *', [nombre, email, password]);
+    const result = await pool.query(
+      'INSERT INTO usuarios (nombre, email, contraseña, direccion, telefono) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [nombre, email, contraseña, direccion, telefono]
+    );
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).send(err.message);
