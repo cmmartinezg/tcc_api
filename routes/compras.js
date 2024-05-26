@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Crear una nueva compra
+// Crear una nueva compra 
 router.post('/', async (req, res) => {
   const { id_usuario, id_producto, cantidad, total } = req.body;
   try {
