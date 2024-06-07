@@ -5,24 +5,24 @@ const pool = require('../conexionDB');
 // Obtener todos los productos
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM productos');
+    const result = await pool.query('SELECT * FROM producto');
     res.json(result.rows);
   } catch (err) {
-    res.status(500).send(err.message);
+    res.status(500).send({ error: err.message });
   }
 });
 
 // Crear un nuevo producto
 router.post('/', async (req, res) => {
-  const { nombre, descripcion, precio, id_comerciante } = req.body;
+  const { nombre, descripcion, precio } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO productos (nombre, descripcion, precio, id_comerciante) VALUES ($1, $2, $3, $4) RETURNING *',
-      [nombre, descripcion, precio, id_comerciante]
+      'INSERT INTO producto (nombre, descripcion, precio) VALUES ($1, $2, $3) RETURNING *',
+      [nombre, descripcion, precio]
     );
-    res.json(result.rows[0]);
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    res.status(500).send(err.message);
+    res.status(500).send({ error: err.message });
   }
 });
 
