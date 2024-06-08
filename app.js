@@ -29,12 +29,14 @@ const productosRouter = require('./routes/productos');
 const clicsProductosRouter = require('./routes/clics_productos');
 const usuariosRouter = require('./routes/usuarios');
 const comprasRouter = require('./routes/compras');
+const loginRouter = require('./routes/login');
 
 app.use('/api/comerciantes', comerciantesRouter);
 app.use('/api/productos', productosRouter);
 app.use('/api/clics_productos', clicsProductosRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/compras', comprasRouter);
+app.use('/api/login', loginRouter);
 
 // Manejo de errores
 app.use((err, req, res, next) => {
