@@ -21,11 +21,9 @@ router.post('/', async (req, res) => {
             // Comparar la contraseña
             const match = await bcrypt.compare(contraseña, usuario.contraseña);
             if (match) {
-                res.json({ mensaje: 'Usuario autenticado exitosamente', tipo: 'usuario', usuario });
-                return;
+                return res.json({ mensaje: 'Usuario autenticado exitosamente', tipo: 'usuario', usuario });
             } else {
-                res.status(401).json({ error: 'Contraseña incorrecta' });
-                return;
+                return res.status(401).json({ error: 'Contraseña incorrecta' });
             }
         }
 
@@ -37,18 +35,16 @@ router.post('/', async (req, res) => {
             // Comparar la contraseña
             const match = await bcrypt.compare(contraseña, comerciante.contraseña);
             if (match) {
-                res.json({ mensaje: 'Comerciante autenticado exitosamente', tipo: 'comerciante', comerciante });
-                return;
+                return res.json({ mensaje: 'Comerciante autenticado exitosamente', tipo: 'comerciante', comerciante });
             } else {
-                res.status(401).json({ error: 'Contraseña incorrecta' });
-                return;
+                return res.status(401).json({ error: 'Contraseña incorrecta' });
             }
         }
 
-        res.status(404).json({ error: 'Usuario o comerciante no encontrado' });
+        return res.status(404).json({ error: 'Usuario o comerciante no encontrado' });
     } catch (err) {
         console.error('Login Error:', err);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        return res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
