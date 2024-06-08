@@ -24,16 +24,16 @@ function getDurationInMilliseconds(start) {
   return (diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS;
 }
 
-const comercianteRouter = require('./routes/comerciante');
+const comerciantesRouter = require('./routes/comerciantes');
 const productosRouter = require('./routes/productos');
 const clicsProductosRouter = require('./routes/clics_productos');
-const usuarioRouter = require('./routes/usuario');
+const usuariosRouter = require('./routes/usuarios');
 const comprasRouter = require('./routes/compras');
 
-app.use('/api/comerciante', comercianteRouter);
+app.use('/api/comerciantes', comerciantesRouter);
 app.use('/api/productos', productosRouter);
 app.use('/api/clics_productos', clicsProductosRouter);
-app.use('/api/usuario', usuarioRouter);
+app.use('/api/usuarios', usuariosRouter);
 app.use('/api/compras', comprasRouter);
 
 // Manejo de errores
