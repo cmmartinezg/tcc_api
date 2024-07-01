@@ -14,7 +14,6 @@ router.get('/', async (req, res) => {
 });
 
 // Crear un nuevo usuario
-// Crear un nuevo usuario
 router.post('/', async (req, res) => {
   const { nombre, email, contraseña, direccion, telefono } = req.body;
   try {
@@ -24,14 +23,12 @@ router.post('/', async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    if (err.code === '23505') { // Código de error PostgreSQL para violación de restricción de unicidad
-      res.status(409).json({ error: 'El email ya está en uso. Por favor, use otro email.' });
+    if (err.code === '23505') { // Violación de la unicidad del email
+      res.status(409).json({ message: 'El email ya está en uso. Por favor, utilice otro email.' });
     } else {
-      console.error('Error al registrar usuario:', err);
-      res.status(500).json({ error: 'Error interno del servidor.' });
+      res.status(500).json({ message: 'Error interno del servidor.' });
     }
   }
 });
-
 
 module.exports = router;
