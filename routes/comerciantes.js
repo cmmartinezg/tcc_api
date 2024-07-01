@@ -22,8 +22,12 @@ router.post('/', async (req, res) => {
         );
         res.json(result.rows[0]);
     } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: err.message });
+        if (err.code === '23505') { // Error code for unique violation in PostgreSQL
+            res.status(409).json({ error: "El email ya está registrado." });
+        } else {
+            console.error('Error:', err);
+            res.status(500).json({ error: err.message });
+        }
     }
 });
 
