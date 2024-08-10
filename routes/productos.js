@@ -2,10 +2,16 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../conexionDB');
 
-// Obtener todos los productos
+// Obtener todos los productos o filtrar por comerciante
 router.get('/', async (req, res) => {
+    const { comercianteId } = req.query;
     try {
-        const result = await pool.query('SELECT * FROM productos');
+        let result;
+        if (comercianteId) {
+            result = await pool.query('SELECT * FROM productos WHERE id_comerciante = $1', [comercianteId]);
+        } else {
+            result = await pool.query('SELECT * FROM productos');
+        }
         res.json(result.rows);
     } catch (err) {
         res.status(500).send(err.message);
