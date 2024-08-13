@@ -3,6 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
+
 app.use(cors());
 app.use(express.json());
 
@@ -30,7 +31,11 @@ const clicsProductosRouter = require('./routes/clics_productos');
 const usuariosRouter = require('./routes/usuarios');
 const comprasRouter = require('./routes/compras');
 const loginRouter = require('./routes/login');
+const wishlistRoutes = require('./routes/wishlist');
+const carritoRoutes = require('./routes/carrito');
 
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/carrito', carritoRoutes);
 app.use('/api/comerciantes', comerciantesRouter);
 app.use('/api/productos', productosRouter);
 app.use('/api/clics_productos', clicsProductosRouter);
