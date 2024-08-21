@@ -33,7 +33,11 @@ const comprasRouter = require('./routes/compras');
 const loginRouter = require('./routes/login');
 const wishlistRoutes = require('./routes/wishlist');
 const carritoRoutes = require('./routes/carrito');
+const valoracionesRouter = require('./routes/valoraciones'); 
+const valoraciones = require('./routes/valoraciones');
 
+
+app.use('/api/valoraciones', valoraciones);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/carrito', carritoRoutes);
 app.use('/api/comerciantes', comerciantesRouter);
@@ -42,6 +46,8 @@ app.use('/api/clics_productos', clicsProductosRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/compras', comprasRouter);
 app.use('/api/login', loginRouter);
+app.use(express.json()); // Necesario para parsear JSON en el cuerpo de las solicitudes
+app.use('/api/valoraciones', valoracionesRouter);
 
 // Manejo de errores
 app.use((err, req, res, next) => {
