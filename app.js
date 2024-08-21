@@ -35,8 +35,9 @@ const wishlistRoutes = require('./routes/wishlist');
 const carritoRoutes = require('./routes/carrito');
 const valoracionesRouter = require('./routes/valoraciones'); 
 const valoraciones = require('./routes/valoraciones');
+const recomendacionesRouter = require('./recomendaciones');
 
-
+app.use('/api', recomendacionesRouter);
 app.use('/api/valoraciones', valoraciones);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/carrito', carritoRoutes);
