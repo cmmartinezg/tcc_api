@@ -4,6 +4,7 @@ const app = express();
 
 const port = process.env.PORT || 3000;
 
+
 app.use(cors());
 app.use(express.json());
 
@@ -17,6 +18,10 @@ const comprasRouter = require('./routes/compras');
 const loginRouter = require('./routes/login');
 const valoracionesRouter = require('./routes/valoraciones');
 
+app.use('/api', recomendacionesRouter);
+app.use('/api/valoraciones', valoraciones);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/carrito', carritoRoutes);
 // Usar routers
 app.use('/api/comerciantes', comerciantesRouter);
 app.use('/api/productos', productosRouter);
@@ -25,6 +30,8 @@ app.use('/api/usuarios', usuariosRouter);
 app.use('/api/compras', comprasRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/valoraciones', valoracionesRouter); // Asegúrate de que esta línea esté presente
+app.use(express.json()); // Necesario para parsear JSON en el cuerpo de las solicitudes
+app.use('/api/valoraciones', valoracionesRouter);
 
 // Manejo de errores
 app.use((err, req, res, next) => {
