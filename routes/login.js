@@ -11,6 +11,9 @@ router.post('/', async (req, res) => {
         const merchantResult = await pool.query('SELECT * FROM comerciantes WHERE email = $1', [email]);
         const comerciante = merchantResult.rows[0];
 
+        console.log('Contraseña ingresada:', contraseña);
+        console.log('Contraseña hash comerciante:', comerciante ? comerciante.contrasena : 'No comerciante encontrado');
+
         if (comerciante && await bcrypt.compare(contraseña, comerciante.contrasena)) {
             return res.json({
                 mensaje: 'Comerciante autenticado exitosamente',
@@ -23,6 +26,8 @@ router.post('/', async (req, res) => {
         // Buscar usuario por email (si no es comerciante)
         const userResult = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
         const usuario = userResult.rows[0];
+
+        console.log('Contraseña hash usuario:', usuario ? usuario.contrasena : 'No usuario encontrado');
 
         if (usuario && await bcrypt.compare(contraseña, usuario.contrasena)) {
             return res.json({
