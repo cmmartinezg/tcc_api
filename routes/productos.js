@@ -7,9 +7,55 @@ const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 const pool = require('../conexionDB');
-
+const { Configuration, OpenAIApi } = require('openai'); // Importar OpenAI SDK
 const router = express.Router();
 
+// Configuración de OpenAI
+const openai = new OpenAIApi(new Configuration({
+  apiKey: process.env.OPENAI_API_KEY, // Asegúrate de tener tu API key en variables de entorno
+}));
+
+// Nueva ruta para obtener recomendaciones de productos
+router.get('/recomendaciones', async (req, res) => {
+  const { comercianteId, nombreProducto } = req.query; // Usar comercianteId o nombre de producto para personalizar recomendaciones
+
+  try {
+    // Obtener todos los productos de la base de datos excepto los del comerciante actual
+    const productos = await pool.query('SELECT * FROM productos WHERE id_comerciante != $1', [comercianteId]);
+    
+    // Crear embeddings de OpenAI para el producto actual
+    const embeddingProducto = await obtenerEmbedding(nombreProducto); 
+
+    // Calcular similitud y recomendar productos
+    const recomendaciones = productos.rows.filter(producto => {
+      const embeddingOtroProducto = obtenerEmbedding(producto.nombre);
+      const distancia = calcularDistanciaCoseno(embeddingProducto, embeddingOtroProducto);
+      return distancia < 0.5; // Ejemplo de umbral de similitud
+    });
+
+    res.json(recomendaciones);
+  } catch (error) {
+    console.error('Error al obtener recomendaciones:', error);
+    res.status(500).json({ error: 'Error al obtener recomendaciones' });
+  }
+});
+
+// Función para obtener embeddings de OpenAI
+async function obtenerEmbedding(texto) {
+  const response = await openai.createEmbedding({
+    model: "text-embedding-3-small",
+    input: texto
+  });
+  return response.data[0].embedding;
+}
+
+// Función para calcular la distancia coseno entre dos embeddings
+function calcularDistanciaCoseno(embeddingA, embeddingB) {
+  const dotProduct = embeddingA.reduce((sum, val, i) => sum + val * embeddingB[i], 0);
+  const magnitudeA = Math.sqrt(embeddingA.reduce((sum, val) => sum + val * val, 0));
+  const magnitudeB = Math.sqrt(embeddingB.reduce((sum, val) => sum + val * val, 0));
+  return 1 - dotProduct / (magnitudeA * magnitudeB); // Distancia coseno
+}
 // Configurar multer para la carga de archivos con validación de tipo de archivo
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
