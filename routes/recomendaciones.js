@@ -1,7 +1,7 @@
 // Archivo: routes/recomendaciones.js
 const express = require('express');
 const router = express.Router();
-const pool = require('../conexionDB'); // Asegúrate de que la conexión a la base de datos esté configurada
+const pool = require('../conexionDB'); 
 
 // Endpoint para obtener recomendaciones de productos
 router.get('/', async (req, res) => {
