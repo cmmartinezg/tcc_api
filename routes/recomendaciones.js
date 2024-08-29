@@ -1,15 +1,44 @@
 // Archivo: routes/recomendaciones.js
 const express = require('express');
 const router = express.Router();
-const pool = require('../conexionDB'); 
+const openaiClient = require('../openaiConfig'); 
+const pool = require('../conexionDB');
+
+// Función para obtener productos similares utilizando incrustaciones de OpenAI
+async function obtenerRecomendaciones(comercianteId) {
+  try {
+    // Obtén los productos del comerciante desde la base de datos Neon
+    const result = await pool.query('SELECT * FROM productos WHERE id_comerciante = $1', [comercianteId]);
+    const productos = result.rows;
+
+    if (productos.length === 0) {
+      return [];
+    }
+
+    // Genera las incrustaciones de los productos usando OpenAI
+    const productosConVectores = await Promise.all(productos.map(async (producto) => {
+      const textoProducto = `${producto.nombre} ${producto.descripcion}`;
+      const embeddingResponse = await openaiClient.createEmbedding({
+        input: textoProducto,
+        model: "text-embedding-ada-002"
+      });
+      producto.vector = embeddingResponse.data[0].embedding;
+      return producto;
+    }));
+
+    return productosConVectores;
+  } catch (err) {
+    console.error('Error al obtener recomendaciones:', err);
+    throw err;
+  }
+}
 
 // Endpoint para obtener recomendaciones de productos
 router.get('/', async (req, res) => {
   const { comercianteId } = req.query;
 
   try {
-    // Aquí llamarías a tu función para calcular recomendaciones
-    const productosRecomendados = await obtenerRecomendaciones(comercianteId); // Implementa esta función según tu lógica
+    const productosRecomendados = await obtenerRecomendaciones(comercianteId);
     res.json(productosRecomendados);
   } catch (error) {
     console.error('Error al obtener recomendaciones:', error);
@@ -18,29 +47,3 @@ router.get('/', async (req, res) => {
 });
 
 module.exports = router;
-const bcrypt = require('bcrypt');
-const pool = require('../conexionDB');
-
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    try {
-        const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
-
-        if (result.rows.length > 0) {
-            const user = result.rows[0];
-            const match = await bcrypt.compare(password, user.password);
-
-            if (match) {
-                res.status(200).json({ mensaje: 'Inicio de sesión exitoso' });
-            } else {
-                res.status(400).json({ mensaje: 'Contraseña incorrecta' });
-            }
-        } else {
-            res.status(400).json({ mensaje: 'Usuario no encontrado' });
-        }
-    } catch (err) {
-        console.error('Login Error:', err);
-        res.status(500).json({ mensaje: 'Error interno del servidor' });
-    }
-});

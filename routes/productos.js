@@ -7,13 +7,8 @@ const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 const pool = require('../conexionDB');
-const { Configuration, OpenAIApi } = require('openai'); // Importar OpenAI SDK
+const openaiClient = require('../openaiConfig'); 
 const router = express.Router();
-
-// Configuración de OpenAI
-const openai = new OpenAIApi(new Configuration({
-  apiKey: process.env.OPENAI_API_KEY, // Asegúrate de tener tu API key en variables de entorno
-}));
 
 // Nueva ruta para obtener recomendaciones de productos
 router.get('/recomendaciones', async (req, res) => {
@@ -42,11 +37,16 @@ router.get('/recomendaciones', async (req, res) => {
 
 // Función para obtener embeddings de OpenAI
 async function obtenerEmbedding(texto) {
-  const response = await openai.createEmbedding({
-    model: "text-embedding-3-small",
-    input: texto
-  });
-  return response.data[0].embedding;
+  try {
+    const response = await openaiClient.createEmbedding({
+      model: "text-embedding-ada-002",
+      input: texto
+    });
+    return response.data[0].embedding;
+  } catch (error) {
+    console.error('Error al obtener embedding:', error);
+    throw error;
+  }
 }
 
 // Función para calcular la distancia coseno entre dos embeddings
