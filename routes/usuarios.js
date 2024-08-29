@@ -16,14 +16,14 @@ router.get('/', async (req, res) => {
 
 // Crear un nuevo usuario
 router.post('/', async (req, res) => {
-  const { nombre, email, contraseña, direccion, telefono } = req.body;
+  const { nombre, email, contrasena, direccion, telefono } = req.body;
 
   try {
-    // Encriptar la contraseña antes de guardarla en la base de datos
-    const hashedPassword = await bcrypt.hash(contraseña, 10);
+    // Encriptar la contrasena antes de guardarla en la base de datos
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
 
     const result = await pool.query(
-      'INSERT INTO usuarios (nombre, email, contraseña, direccion, telefono) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO usuarios (nombre, email, contrasena, direccion, telefono) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [nombre, email, hashedPassword, direccion, telefono]
     );
 
