@@ -43,10 +43,10 @@ router.get('/recomendaciones', async (req, res) => {
 // Función para obtener embeddings de OpenAI
 async function obtenerEmbedding(texto) {
   const response = await openai.createEmbedding({
-    model: "text-embedding-3-small",
+    model: "text-embedding-ada-002", // Reemplazado por un modelo válido
     input: texto
   });
-  return response.data[0].embedding;
+  return response.data.data[0].embedding; // Ajuste en la forma de acceder a los datos
 }
 
 // Función para calcular la distancia coseno entre dos embeddings
@@ -56,6 +56,7 @@ function calcularDistanciaCoseno(embeddingA, embeddingB) {
   const magnitudeB = Math.sqrt(embeddingB.reduce((sum, val) => sum + val * val, 0));
   return 1 - dotProduct / (magnitudeA * magnitudeB); // Distancia coseno
 }
+
 // Configurar multer para la carga de archivos con validación de tipo de archivo
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
