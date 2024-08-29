@@ -37,7 +37,6 @@ router.get('/recomendaciones', async (req, res) => {
 
 // Función para obtener embeddings de OpenAI
 async function obtenerEmbedding(texto) {
-<<<<<<< HEAD
   try {
     const response = await openaiClient.createEmbedding({
       model: "text-embedding-ada-002",
@@ -48,13 +47,6 @@ async function obtenerEmbedding(texto) {
     console.error('Error al obtener embedding:', error);
     throw error;
   }
-=======
-  const response = await openai.createEmbedding({
-    model: "text-embedding-ada-002", // Reemplazado por un modelo válido
-    input: texto
-  });
-  return response.data.data[0].embedding; // Ajuste en la forma de acceder a los datos
->>>>>>> cfffa63578958b7d2bbe71b1b0ace379cf276748
 }
 
 // Función para calcular la distancia coseno entre dos embeddings
