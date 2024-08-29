@@ -4,38 +4,56 @@ const pool = require('../conexionDB');
 const bcrypt = require('bcrypt');
 
 router.post('/', async (req, res) => {
-    const { email, contraseña } = req.body;
+    const { email, contrasena } = req.body;
 
     try {
         // Buscar comerciante por email
         const merchantResult = await pool.query('SELECT * FROM comerciantes WHERE email = $1', [email]);
         const comerciante = merchantResult.rows[0];
 
-        console.log('Contraseña ingresada:', contraseña);
-        console.log('Contraseña hash comerciante:', comerciante ? comerciante.contrasena : 'No comerciante encontrado');
+        console.log('Contrasena ingresada:', contrasena);
+        console.log('Contrasena hash comerciante:', comerciante ? comerciante.contrasena : 'No comerciante encontrado');
 
-        if (comerciante && await bcrypt.compare(contraseña, comerciante.contrasena)) {
-            return res.json({
-                mensaje: 'Comerciante autenticado exitosamente',
-                tipo: 'comerciante',
-                comercianteId: comerciante.id,
-                comercianteNombre: comerciante.nombre
-            });
+        if (comerciante) {
+            if (comerciante.contrasena) {
+                const isMatch = await bcrypt.compare(contrasena, comerciante.contrasena);
+                if (isMatch) {
+                    return res.json({
+                        mensaje: 'Comerciante autenticado exitosamente',
+                        tipo: 'comerciante',
+                        Id: comerciante.id,
+                        nombre: comerciante.nombre
+                    });
+                } else {
+                    return res.status(401).json({ error: 'Contrasena incorrecta para comerciante' });
+                }
+            } else {
+                return res.status(500).json({ error: 'Contrasena del comerciante no encontrada' });
+            }
         }
 
         // Buscar usuario por email (si no es comerciante)
         const userResult = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
         const usuario = userResult.rows[0];
 
-        console.log('Contraseña hash usuario:', usuario ? usuario.contrasena : 'No usuario encontrado');
+        console.log('Contrasena hash usuario:', usuario ? usuario.contrasena : 'No usuario encontrado');
 
-        if (usuario && await bcrypt.compare(contraseña, usuario.contrasena)) {
-            return res.json({
-                mensaje: 'Usuario autenticado exitosamente',
-                tipo: 'usuario',
-                usuarioId: usuario.id,
-                usuarioNombre: usuario.nombre
-            });
+        if (usuario) {
+            if (usuario.contrasena) {
+                const isMatch = await bcrypt.compare(contrasena, usuario.contrasena);
+                if (isMatch) {
+                    return res.json({
+                        mensaje: 'Usuario autenticado exitosamente',
+                        tipo: 'usuario',
+                        Id: usuario.id,
+                        nombre: usuario.nombre
+                    });
+                } else {
+                    return res.status(401).json({ error: 'Contrasena incorrecta para usuario' });
+                }
+            } else {
+                return res.status(500).json({ error: 'Contrasena del usuario no encontrada' });
+            }
         }
 
         // Si no se encuentra ni comerciante ni usuario
@@ -46,5 +64,6 @@ router.post('/', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 
 module.exports = router;
