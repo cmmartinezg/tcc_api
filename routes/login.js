@@ -4,19 +4,19 @@ const pool = require('../conexionDB');
 const bcrypt = require('bcrypt');
 
 router.post('/', async (req, res) => {
-    const { email, contraseña } = req.body;
+    const { email, contrasena } = req.body;
 
     try {
         // Buscar comerciante por email
         const merchantResult = await pool.query('SELECT * FROM comerciantes WHERE email = $1', [email]);
         const comerciante = merchantResult.rows[0];
 
-        console.log('Contraseña ingresada:', contraseña);
-        console.log('Contraseña hash comerciante:', comerciante ? comerciante.contrasena : 'No comerciante encontrado');
+        console.log('Contrasena ingresada:', contrasena);
+        console.log('Contrasena hash comerciante:', comerciante ? comerciante.contrasena : 'No comerciante encontrado');
 
         if (comerciante) {
             if (comerciante.contrasena) {
-                const isMatch = await bcrypt.compare(contraseña, comerciante.contrasena);
+                const isMatch = await bcrypt.compare(contrasena, comerciante.contrasena);
                 if (isMatch) {
                     return res.json({
                         mensaje: 'Comerciante autenticado exitosamente',
@@ -25,10 +25,10 @@ router.post('/', async (req, res) => {
                         nombre: comerciante.nombre
                     });
                 } else {
-                    return res.status(401).json({ error: 'Contraseña incorrecta para comerciante' });
+                    return res.status(401).json({ error: 'Contrasena incorrecta para comerciante' });
                 }
             } else {
-                return res.status(500).json({ error: 'Contraseña del comerciante no encontrada' });
+                return res.status(500).json({ error: 'Contrasena del comerciante no encontrada' });
             }
         }
 
@@ -36,11 +36,11 @@ router.post('/', async (req, res) => {
         const userResult = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
         const usuario = userResult.rows[0];
 
-        console.log('Contraseña hash usuario:', usuario ? usuario.contrasena : 'No usuario encontrado');
+        console.log('Contrasena hash usuario:', usuario ? usuario.contrasena : 'No usuario encontrado');
 
         if (usuario) {
             if (usuario.contrasena) {
-                const isMatch = await bcrypt.compare(contraseña, usuario.contrasena);
+                const isMatch = await bcrypt.compare(contrasena, usuario.contrasena);
                 if (isMatch) {
                     return res.json({
                         mensaje: 'Usuario autenticado exitosamente',
@@ -49,10 +49,10 @@ router.post('/', async (req, res) => {
                         nombre: usuario.nombre
                     });
                 } else {
-                    return res.status(401).json({ error: 'Contraseña incorrecta para usuario' });
+                    return res.status(401).json({ error: 'Contrasena incorrecta para usuario' });
                 }
             } else {
-                return res.status(500).json({ error: 'Contraseña del usuario no encontrada' });
+                return res.status(500).json({ error: 'Contrasena del usuario no encontrada' });
             }
         }
 
