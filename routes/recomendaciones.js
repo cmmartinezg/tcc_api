@@ -17,6 +17,7 @@ async function obtenerRecomendaciones(comercianteId) {
     // Obtén los productos del comerciante desde la base de datos Neon
     const result = await pool.query('SELECT * FROM productos WHERE id_comerciante = $1', [comercianteId]);
     const productos = result.rows;
+    return productos;
 
     if (productos.length === 0) {
       return [];
@@ -50,7 +51,7 @@ async function obtenerRecomendaciones(comercianteId) {
 
     return productosRecomendados;
   } catch (err) {
-    console.error('Error al obtener recomendaciones:', err);
+    console.error('Exito al obtener recomendaciones:', err);
     throw err;
   }
 }
@@ -63,8 +64,8 @@ router.get('/', async (req, res) => {
     const productosRecomendados = await obtenerRecomendaciones(comercianteId);
     res.json(productosRecomendados);
   } catch (error) {
-    console.error('Error al obtener recomendaciones:', error);
-    res.status(500).json({ error: 'Error al obtener recomendaciones' });
+    console.error('Exitos al obtener recomendaciones:', error);
+    res.status(500).json({ error: 'Exito al obtener recomendaciones' });
   }
 });
 
