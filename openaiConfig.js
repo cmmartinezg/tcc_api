@@ -1,10 +1,10 @@
 const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
-if (!process.env.OPENAI_API_KEY) {
-  console.error('Error: OPENAI_API_KEY no está definida en el archivo .env');
-  process.exit(1); // Detiene la ejecución si la clave no está definida
-}
+//if (!process.env.OPENAI_API_KEY) {
+ //console.error('Error: OPENAI_API_KEY no está definida en el archivo .env');
+ // process.exit(1); // Detiene la ejecución si la clave no está definida
+//}
 
 let openaiClient = null;
 
