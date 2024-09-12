@@ -12,93 +12,78 @@ const router = express.Router();
 
 // Nueva ruta para obtener recomendaciones de productos
 router.get('/recomendaciones', async (req, res) => {
-  const { comercianteId, nombreProducto } = req.query; // Usar comercianteId o nombre de producto para personalizar recomendaciones
+    const { comercianteId, nombreProducto } = req.query;
 
-  try {
-    console.log('Obteniendo recomendaciones para comerciante ID:', comercianteId);
+    try {
+        console.log('Obteniendo recomendaciones para comerciante ID:', comercianteId);
 
-    // Obtener todos los productos de la base de datos excepto los del comerciante actual
-    const productos = await pool.query('SELECT * FROM productos WHERE id_comerciante != $1', [comercianteId]);
-    console.log('Productos obtenidos para comparar:', productos.rows.length);
+        // Obtener todos los productos de la base de datos excepto los del comerciante actual
+        const productos = await pool.query('SELECT * FROM productos WHERE id_comerciante != $1', [comercianteId]);
+        console.log('Productos obtenidos para comparar:', productos.rows.length);
 
-    // Crear embeddings de OpenAI para el producto actual
-    const embeddingProducto = await obtenerEmbedding(nombreProducto); 
-    if (!embeddingProducto) {
-      console.error('Error: No se pudo obtener embedding para el producto:', nombreProducto);
-      return res.status(500).json({ error: 'No se pudo obtener embedding para el producto.' });
+        // Simular recomendaciones de productos en lugar de usar embeddings
+        const recomendaciones = productos.rows.filter(producto => producto.precio < 10000); // Ejemplo: Filtrar por precio
+
+        console.log('Recomendaciones generadas:', recomendaciones.length);
+        res.json(recomendaciones);
+    } catch (error) {
+        console.error('Error al obtener recomendaciones:', error);
+        res.status(500).json({ error: 'Error al obtener recomendaciones' });
     }
-
-    // Calcular similitud y recomendar productos
-    const recomendaciones = [];
-
-    for (const producto of productos.rows) {
-      try {
-        const embeddingOtroProducto = await obtenerEmbedding(producto.nombre);
-        if (!embeddingOtroProducto) {
-          console.warn('Embedding no obtenido para producto:', producto.nombre);
-          continue;
-        }
-
-        const distancia = calcularDistanciaCoseno(embeddingProducto, embeddingOtroProducto);
-        if (distancia < 0.5) { // Ejemplo de umbral de similitud
-          recomendaciones.push(producto);
-        }
-      } catch (error) {
-        console.error('Error al calcular similitud para producto:', producto.nombre, error);
-      }
-    }
-
-    console.log('Recomendaciones generadas:', recomendaciones.length);
-    res.json(recomendaciones);
-  } catch (error) {
-    console.error('Error al obtener recomendaciones:', error);
-    res.status(500).json({ error: 'Error al obtener recomendaciones' });
-  }
 });
 
-// Función para obtener embeddings de OpenAI
+// Función para obtener embeddings de OpenAI (comentada para no usar temporalmente)
+/*
 async function obtenerEmbedding(texto) {
-  try {
-    console.log('Obteniendo embedding para:', texto);
-    const response = await openaiClient.createEmbedding({
-      model: "text-embedding-ada-002",
-      input: texto
-    });
-
-    if (!response || !response.data || !response.data[0].embedding) {
-      console.error('Respuesta de OpenAI no contiene embedding válido para:', texto);
+    if (!texto) {
+      console.error('Error: texto para obtener embedding está indefinido.');
       return null;
     }
 
-    console.log('Embedding obtenido correctamente para:', texto);
-    return response.data[0].embedding;
-  } catch (error) {
-    console.error('Error al obtener embedding:', error);
-    return null;
-  }
-}
+    try {
+        console.log('Obteniendo embedding para:', texto);
+        // Asegúrate de usar la ruta completa para acceder al método de OpenAI
+        const response = await openaiClient.embeddings.create({
+            model: "text-embedding-ada-002",
+            input: texto,
+        });
 
-// Función para calcular la distancia coseno entre dos embeddings
-function calcularDistanciaCoseno(embeddingA, embeddingB) {
-  try {
-    if (!embeddingA || !embeddingB || embeddingA.length !== embeddingB.length) {
-      console.error('Embeddings inválidos para calcular distancia coseno.');
-      return 1; // Devuelve la máxima distancia posible
+        if (!response || !response.data || !response.data[0].embedding) {
+            console.error('Respuesta de OpenAI no contiene embedding válido para:', texto);
+            return null;
+        }
+
+        console.log('Embedding obtenido correctamente para:', texto);
+        return response.data[0].embedding;
+    } catch (error) {
+        console.error('Error al obtener embedding:', error);
+        return null;
     }
-
-    const dotProduct = embeddingA.reduce((sum, val, i) => sum + val * embeddingB[i], 0);
-    const magnitudeA = Math.sqrt(embeddingA.reduce((sum, val) => sum + val * val, 0));
-    const magnitudeB = Math.sqrt(embeddingB.reduce((sum, val) => sum + val * val, 0));
-    const distancia = 1 - (dotProduct / (magnitudeA * magnitudeB)); // Distancia coseno
-
-    console.log('Distancia coseno calculada:', distancia);
-    return distancia;
-  } catch (error) {
-    console.error('Error al calcular la distancia coseno:', error);
-    return 1; // Devuelve la máxima distancia posible en caso de error
-  }
 }
+*/
 
+// Función para calcular la distancia coseno entre dos embeddings (también no necesaria sin embeddings)
+/*
+function calcularDistanciaCoseno(embeddingA, embeddingB) {
+    try {
+        if (!embeddingA || !embeddingB || embeddingA.length !== embeddingB.length) {
+            console.error('Embeddings inválidos para calcular distancia coseno.');
+            return 1; // Devuelve la máxima distancia posible
+        }
+
+        const dotProduct = embeddingA.reduce((sum, val, i) => sum + val * embeddingB[i], 0);
+        const magnitudeA = Math.sqrt(embeddingA.reduce((sum, val) => sum + val * val, 0));
+        const magnitudeB = Math.sqrt(embeddingB.reduce((sum, val) => sum + val * val, 0));
+        const distancia = 1 - (dotProduct / (magnitudeA * magnitudeB)); // Distancia coseno
+
+        console.log('Distancia coseno calculada:', distancia);
+        return distancia;
+    } catch (error) {
+        console.error('Error al calcular la distancia coseno:', error);
+        return 1; // Devuelve la máxima distancia posible en caso de error
+    }
+}
+*/
 
 // Configurar multer para la carga de archivos con validación de tipo de archivo
 const storage = multer.diskStorage({

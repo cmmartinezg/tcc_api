@@ -1,21 +1,25 @@
-const { Configuration, OpenAIApi } = require('openai');
-require('dotenv').config();
+const OpenAI = require('openai'); // Importa OpenAI
+require('dotenv').config(); // Carga variables de entorno desde .env
 
-//if (!process.env.OPENAI_API_KEY) {
- //console.error('Error: OPENAI_API_KEY no está definida en el archivo .env');
- // process.exit(1); // Detiene la ejecución si la clave no está definida
-//}
+const apiKey = process.env.OPENAI_API_KEY; // Asegúrate de que la clave API esté en tu archivo .env
 
-let openaiClient = null;
+if (!apiKey) {
+  console.error('Error: OPENAI_API_KEY no está definida en el archivo .env');
+  process.exit(1);
+}
+
+let openaiClient;
 
 try {
-  const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
+  // Configuración del cliente OpenAI
+  openaiClient = new OpenAI({
+    apiKey: apiKey, // Utiliza la API key directamente
   });
-  openaiClient = new OpenAIApi(configuration);
+
   console.log('OpenAI Client configurado correctamente.');
 } catch (error) {
   console.error('Error al configurar OpenAI Client:', error);
+  process.exit(1);
 }
 
-module.exports = openaiClient;
+module.exports = openaiClient; // Exporta el cliente para uso en otros módulos
