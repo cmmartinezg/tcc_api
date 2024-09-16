@@ -32,58 +32,6 @@ router.get('/recomendaciones', async (req, res) => {
     }
 });
 
-// Función para obtener embeddings de OpenAI (comentada para no usar temporalmente)
-/*
-async function obtenerEmbedding(texto) {
-    if (!texto) {
-      console.error('Error: texto para obtener embedding está indefinido.');
-      return null;
-    }
-
-    try {
-        console.log('Obteniendo embedding para:', texto);
-        // Asegúrate de usar la ruta completa para acceder al método de OpenAI
-        const response = await openaiClient.embeddings.create({
-            model: "text-embedding-ada-002",
-            input: texto,
-        });
-
-        if (!response || !response.data || !response.data[0].embedding) {
-            console.error('Respuesta de OpenAI no contiene embedding válido para:', texto);
-            return null;
-        }
-
-        console.log('Embedding obtenido correctamente para:', texto);
-        return response.data[0].embedding;
-    } catch (error) {
-        console.error('Error al obtener embedding:', error);
-        return null;
-    }
-}
-*/
-
-// Función para calcular la distancia coseno entre dos embeddings (también no necesaria sin embeddings)
-/*
-function calcularDistanciaCoseno(embeddingA, embeddingB) {
-    try {
-        if (!embeddingA || !embeddingB || embeddingA.length !== embeddingB.length) {
-            console.error('Embeddings inválidos para calcular distancia coseno.');
-            return 1; // Devuelve la máxima distancia posible
-        }
-
-        const dotProduct = embeddingA.reduce((sum, val, i) => sum + val * embeddingB[i], 0);
-        const magnitudeA = Math.sqrt(embeddingA.reduce((sum, val) => sum + val * val, 0));
-        const magnitudeB = Math.sqrt(embeddingB.reduce((sum, val) => sum + val * val, 0));
-        const distancia = 1 - (dotProduct / (magnitudeA * magnitudeB)); // Distancia coseno
-
-        console.log('Distancia coseno calculada:', distancia);
-        return distancia;
-    } catch (error) {
-        console.error('Error al calcular la distancia coseno:', error);
-        return 1; // Devuelve la máxima distancia posible en caso de error
-    }
-}
-*/
 
 // Configurar multer para la carga de archivos con validación de tipo de archivo
 const storage = multer.diskStorage({
