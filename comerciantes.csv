@@ -1,0 +1,14 @@
+"id","nombre","email","contrasena","direccion","telefono","descripcion","enlace_tienda","fecha_registro"
+"9","Ani Lugo","anailugo016@gmail.com","$2b$10$RrpBrIBpXLExTGag3vNuge3X19pEOS.bLKNJ8NbS0R02Fa0kyuW4y","llanas","0984121514","hola","http://127.0.0.1:5501/ClickStore/registro-usu.html",2024-06-08T03:24:04.204Z
+"17","dahiana","mmartinez@gmail.com","123456","llanas","0984121516","hola","http://127.0.0.1:5501/ClickStore/registro-usu.html",2024-06-08T19:38:27.404Z
+"22","Anita","prueba123@gmail.com","123456","prueba12345","0984356780","hola","https://chatgpt.com/c/29eeae11-3c16-43ec-a7e4-b03600f5b98c",2024-06-13T01:15:14.889Z
+"23","Anita2","prueba1234@gmail.com","123123","prueba12345","0984356780","hola","https://chatgpt.com/c/29eeae11-3c16-43ec-a7e4-b03600f5b98c",2024-06-13T01:21:14.974Z
+"24","Anita3","prueba12374@gmail.com","123123","prueba12345","0984356780","aaaa","https://chatgpt.com/c/29eeae11-3c16-43ec-a7e4-b03600f5b98c",2024-06-13T01:21:55.170Z
+"25","Anita4","prueba12375@gmail.com","123456","prueba12346","0984356780","hola123","https://chatgpt.com/c/29eeae11-3c16-43ec-a7e4-b03600f5b98c",2024-06-14T06:22:01.785Z
+"31","Sam","sam@gmail.com","1234","Barrio Obrero","09815627","","https://samonline.com",2024-07-01T06:35:39.227Z
+"34","Eli","eli@gmail.com","1234","Juan e oleary","09871344","","https://eli.com,py",2024-08-05T23:57:54.019Z
+"41","ara","ara@gmail.com","$2b$10$tYRLBF9bSXOEVn3RTxgrsuJUw/CN.ol1Aor2vR1NCQ4PvAOcDGHZ.","ara1","098232456","1737","https://nara.com/py/",2024-08-13T01:17:29.490Z
+"49","jazmin","jaz1@gmail.com","$2b$10$lSwPCRyRsQ31JTUrkX80d.dd0pWxOK6Islq6/AGlZs8sEXdDxWeJa","Villa sofia","09864321","Comercio","https://villSofi.com.py",2024-08-26T22:41:00.412Z
+"51","carlos","carlosmgenes@gmail.com","$2b$10$RrpBrIBpXLExTGag3vNuge3X19pEOS.bLKNJ8NbS0R02Fa0kyuW4y","llanas","0984121514","prueba","https://chatgpt.com/c/29eeae11-3c16-43ec-a7e4-b03600f5b98c",2024-08-27T05:58:25.506Z
+"59","carlos","carlosmgenex@gmail.com","$2b$10$d/jnAZJdHfJK/Mc7iyzPeO8iiHcWLJ7cyqErBLxeXOPKNIdZkZvyC","llanas","0984121514","","https://chatgpt.com/c/29eeae11-3c16-43ec-a7e4-b03600f5b98c",2024-08-28T18:27:48.119Z
+"60","carlos","carlosmgenexx@gmail.com","$2b$10$PHJWCpBE3M21.KUfMDDiqONL3yC2Gz.uxfWtqcaLjz1S14t3c7NWy","llanas","0984121514","","https://chatgpt.com/c/29eeae11-3c16-43ec-a7e4-b03600f5b98c",2024-08-28T18:28:35.759Z
