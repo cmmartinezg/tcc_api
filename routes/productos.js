@@ -7,7 +7,6 @@ const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 const pool = require('../conexionDB');
-const openaiClient = require('../openaiConfig'); 
 const router = express.Router();
 
 // Nueva ruta para obtener recomendaciones de productos
@@ -143,6 +142,7 @@ router.post('/', async (req, res) => {
         res.status(500).send(err.message);
     }
 });
+
 
 // Obtener todos los productos o filtrar por comerciante
 router.get('/', async (req, res) => {
