@@ -1,3 +1,5 @@
+// archivo: routes/productos.js
+
 const express = require('express');
 const multer = require('multer');
 const csvParser = require('csv-parser');
@@ -8,29 +10,6 @@ const fs = require('fs');
 const path = require('path');
 const pool = require('../conexionDB');
 const router = express.Router();
-
-// Nueva ruta para obtener recomendaciones de productos
-router.get('/recomendaciones', async (req, res) => {
-    const { comercianteId, nombreProducto } = req.query;
-
-    try {
-        console.log('Obteniendo recomendaciones para comerciante ID:', comercianteId);
-
-        // Obtener todos los productos de la base de datos excepto los del comerciante actual
-        const productos = await pool.query('SELECT * FROM productos WHERE id_comerciante != $1', [comercianteId]);
-        console.log('Productos obtenidos para comparar:', productos.rows.length);
-
-        // Simular recomendaciones de productos en lugar de usar embeddings
-        const recomendaciones = productos.rows.filter(producto => producto.precio < 10000); // Ejemplo: Filtrar por precio
-
-        console.log('Recomendaciones generadas:', recomendaciones.length);
-        res.json(recomendaciones);
-    } catch (error) {
-        console.error('Error al obtener recomendaciones:', error);
-        res.status(500).json({ error: 'Error al obtener recomendaciones' });
-    }
-});
-
 
 // Configurar multer para la carga de archivos con validación de tipo de archivo
 const storage = multer.diskStorage({
@@ -61,6 +40,11 @@ const upload = multer({
 
 // Ruta para manejar la carga del archivo
 router.post('/upload', upload, async (req, res) => {
+    // Verifica si `req.file` está definido
+    if (!req.file) {
+        return res.status(400).json({ error: 'No se envió ningún archivo o el tipo de archivo no es válido.' });
+    }
+
     const archivoPath = req.file.path;
     const ext = path.extname(req.file.originalname).toLowerCase();
 
@@ -107,9 +91,10 @@ router.post('/upload', upload, async (req, res) => {
     } catch (err) {
         console.error('Error al procesar el archivo:', err);
         res.status(500).send('Error al procesar el archivo');
-        fs.unlinkSync(archivoPath);
+        if (archivoPath) fs.unlinkSync(archivoPath);
     }
 });
+
 
 // Función para registrar productos en la base de datos
 const registrarProductos = async (productos, res) => {
@@ -142,7 +127,6 @@ router.post('/', async (req, res) => {
         res.status(500).send(err.message);
     }
 });
-
 
 // Obtener todos los productos o filtrar por comerciante
 router.get('/', async (req, res) => {
