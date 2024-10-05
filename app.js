@@ -17,6 +17,7 @@ const valoracionesRouter = require('./routes/valoraciones');
 const recomendacionesRouter = require('./routes/recomendaciones'); 
 const wishlistRouter = require('./routes/wishlist'); 
 const carritoRouter = require('./routes/carrito'); 
+const recomendacionesKnnRouter = require('./routes/recomendaciones_knn');
 
 // Usar routers
 app.use('/api/productos', productosRouter);
@@ -28,6 +29,8 @@ app.use('/api/valoraciones', valoracionesRouter);
 app.use('/api/recomendaciones', recomendacionesRouter); 
 app.use('/api/wishlist', wishlistRouter); 
 app.use('/api/carrito', carritoRouter); 
+app.use('/api/recomendaciones_knn', recomendacionesKnnRouter);
+
 // Manejo de errores
 app.use((err, req, res, next) => {
   console.error('Error:', err);
