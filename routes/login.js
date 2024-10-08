@@ -20,15 +20,15 @@ router.post('/', async (req, res) => {
                 if (isMatch) {
                     return res.json({
                         mensaje: 'Comerciante autenticado exitosamente',
-                        tipo: 'comerciante',
+                        tipo: 'comerciante', // Tipo de usuario: Comerciante
                         Id: comerciante.id,
                         nombre: comerciante.nombre
                     });
                 } else {
-                    return res.status(401).json({ error: 'Contrasena incorrecta para comerciante' });
+                    return res.status(401).json({ error: 'Contraseña incorrecta para comerciante' });
                 }
             } else {
-                return res.status(500).json({ error: 'Contrasena del comerciante no encontrada' });
+                return res.status(500).json({ error: 'Contraseña del comerciante no encontrada' });
             }
         }
 
@@ -44,15 +44,15 @@ router.post('/', async (req, res) => {
                 if (isMatch) {
                     return res.json({
                         mensaje: 'Usuario autenticado exitosamente',
-                        tipo: 'usuario',
+                        tipo: 'usuario', // Tipo de usuario: Usuario
                         Id: usuario.id,
                         nombre: usuario.nombre
                     });
                 } else {
-                    return res.status(401).json({ error: 'Contrasena incorrecta para usuario' });
+                    return res.status(401).json({ error: 'Contraseña incorrecta para usuario' });
                 }
             } else {
-                return res.status(500).json({ error: 'Contrasena del usuario no encontrada' });
+                return res.status(500).json({ error: 'Contraseña del usuario no encontrada' });
             }
         }
 
@@ -64,6 +64,5 @@ router.post('/', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 
 module.exports = router;
