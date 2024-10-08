@@ -1,0 +1,26 @@
+from flask import Flask, jsonify, request
+import pandas as pd
+
+app = Flask(__name__)
+
+# Cargar el CSV de productos
+try:
+    data = pd.read_csv('productos_actualizados.csv')
+    print(f"Columnas encontradas en el CSV: {data.columns}")
+except Exception as e:
+    print(f"Error al leer el archivo CSV: {e}")
+    exit()
+
+# Definir las rutas de Flask
+@app.route('/')
+def index():
+    return "Servidor de recomendaciones está corriendo."
+
+@app.route('/recomendaciones', methods=['GET'])
+def recomendaciones():
+    # Implementar la lógica de recomendaciones aquí
+    return jsonify({"mensaje": "Lógica de recomendaciones no implementada"})
+
+if __name__ == '__main__':
+    # Iniciar el servidor en el puerto 5001
+    app.run(host='127.0.0.1', port=5001)

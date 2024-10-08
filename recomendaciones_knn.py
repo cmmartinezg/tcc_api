@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas las rutas
 
 # Cargar los datos del CSV
-data = pd.read_csv('productosknn.csv')
+data = pd.read_csv('productos_actualizados.csv')
 
 # Imprimir las columnas para verificar
 print("Columnas encontradas en el CSV:", data.columns)
