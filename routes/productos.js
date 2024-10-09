@@ -13,20 +13,25 @@ const upload = multer();
 
 // Ruta para crear un nuevo producto de forma individual
 router.post('/', upload.none(), async (req, res) => {
-    const { nombre, descripcion, precio, categoria, foto_url, id_comerciante } = req.body;
+    const { nombre, descripcion, precio, categoria, foto_url, id_comerciante, stock } = req.body;
 
     console.log('Datos recibidos en req.body:', req.body);
 
     // Validar que todos los campos requeridos estén presentes
-    if (!nombre || !descripcion || !precio || !categoria || !foto_url || !id_comerciante) {
+    if (!nombre || !descripcion || !precio || !categoria || !foto_url || !id_comerciante || stock == null) {
         return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
+    // Validar que el stock es un número entero no negativo
+    if (isNaN(stock) || parseInt(stock) < 0) {
+        return res.status(400).json({ error: 'El campo stock debe ser un número entero no negativo' });
     }
 
     try {
         // Insertar el producto y obtener su id
         const result = await pool.query(
-            'INSERT INTO productos (nombre, descripcion, precio, categoria, foto_url, id_comerciante) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [nombre, descripcion, parseFloat(precio), categoria, foto_url, id_comerciante]
+            'INSERT INTO productos (nombre, descripcion, precio, categoria, foto_url, id_comerciante, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [nombre, descripcion, parseFloat(precio), categoria, foto_url, id_comerciante, parseInt(stock)]
         );
 
         res.json({ mensaje: 'Producto registrado exitosamente', producto: result.rows[0] });
@@ -35,6 +40,7 @@ router.post('/', upload.none(), async (req, res) => {
         res.status(500).send('Error al registrar producto');
     }
 });
+
 
 // Configurar multer para la carga de archivos de productos (CSV, Excel, PDF)
 const storage = multer.diskStorage({
@@ -154,17 +160,22 @@ const procesarPDF = async (archivoPath) => {
 const registrarProductos = async (productos, res) => {
     try {
         for (const producto of productos) {
-            const { nombre, descripcion, precio, categoria, foto_url, id_comerciante } = producto;
+            const { nombre, descripcion, precio, categoria, foto_url, id_comerciante, stock } = producto;
 
             // Validar que los campos requeridos estén presentes
-            if (!nombre || !descripcion || !precio || !categoria || !foto_url || !id_comerciante) {
+            if (!nombre || !descripcion || !precio || !categoria || !foto_url || !id_comerciante || stock == null) {
                 continue; // O puedes optar por rechazar toda la operación
+            }
+
+            // Validar que el stock es un número entero no negativo
+            if (isNaN(stock) || parseInt(stock) < 0) {
+                continue; // O manejar el error de otra forma
             }
 
             // Insertar el producto
             await pool.query(
-                'INSERT INTO productos (nombre, descripcion, precio, categoria, foto_url, id_comerciante) VALUES ($1, $2, $3, $4, $5, $6)',
-                [nombre, descripcion, parseFloat(precio), categoria, foto_url, id_comerciante]
+                'INSERT INTO productos (nombre, descripcion, precio, categoria, foto_url, id_comerciante, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                [nombre, descripcion, parseFloat(precio), categoria, foto_url, id_comerciante, parseInt(stock)]
             );
         }
         res.json({ mensaje: 'Productos registrados exitosamente' });
@@ -173,6 +184,7 @@ const registrarProductos = async (productos, res) => {
         res.status(500).send('Error al registrar productos');
     }
 };
+
 
 // Función para convertir texto de PDF a productos
 const parseTextToProductos = (text) => {
@@ -247,17 +259,22 @@ router.delete('/:id', async (req, res) => {
 // Actualizar un producto por ID
 router.put('/:id', upload.none(), async (req, res) => {
     const { id } = req.params;
-    const { nombre, descripcion, precio, categoria, foto_url, id_comerciante } = req.body;
+    const { nombre, descripcion, precio, categoria, foto_url, id_comerciante, stock } = req.body;
 
     // Validar que todos los campos requeridos estén presentes
-    if (!nombre || !descripcion || !precio || !categoria || !foto_url || !id_comerciante) {
+    if (!nombre || !descripcion || !precio || !categoria || !foto_url || !id_comerciante || stock == null) {
         return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
+    // Validar que el stock es un número entero no negativo
+    if (isNaN(stock) || parseInt(stock) < 0) {
+        return res.status(400).json({ error: 'El campo stock debe ser un número entero no negativo' });
     }
 
     try {
         const result = await pool.query(
-            'UPDATE productos SET nombre = $1, descripcion = $2, precio = $3, categoria = $4, foto_url = $5, id_comerciante = $6 WHERE id = $7 RETURNING *',
-            [nombre, descripcion, parseFloat(precio), categoria, foto_url, id_comerciante, id]
+            'UPDATE productos SET nombre = $1, descripcion = $2, precio = $3, categoria = $4, foto_url = $5, id_comerciante = $6, stock = $7 WHERE id = $8 RETURNING *',
+            [nombre, descripcion, parseFloat(precio), categoria, foto_url, id_comerciante, parseInt(stock), id]
         );
         if (result.rows.length === 0) {
             return res.status(404).send('Producto no encontrado');
@@ -270,4 +287,6 @@ router.put('/:id', upload.none(), async (req, res) => {
     }
 });
 
+
 module.exports = router;
+
