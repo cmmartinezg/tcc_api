@@ -78,34 +78,49 @@ def obtener_detalles_producto(producto_id):
 # Definir la ruta de recomendaciones
 @app.route('/recomendaciones', methods=['GET'])
 def get_recommendations():
-    comerciante_id = request.args.get('comercianteId', type=int)  # Obtener el ID del comerciante desde la solicitud
+    try:
+        comerciante_id = request.args.get('comercianteId', type=int)
 
-    # Obtener todos los productos del comerciante para no recomendarlos
-    productos_comerciante = obtener_productos_comerciante(comerciante_id)
+        if not comerciante_id:
+            return jsonify({'error': 'comercianteId no proporcionado'}), 400
 
-    # Obtener todos los productos para los cuales hacer recomendaciones
-    all_product_ids = calificaciones_df['producto_id'].unique()
+        # Obtener todos los productos del comerciante para no recomendarlos
+        productos_comerciante = obtener_productos_comerciante(comerciante_id)
 
-    recomendaciones = []
-    for producto_id in all_product_ids:
-        # Saltar los productos que ya están en el inventario del comerciante
-        if producto_id in productos_comerciante:
-            continue
-        
-        prediccion = algo.predict(uid='global_user', iid=producto_id)
-        
-        # Obtener detalles del producto desde la API de Node.js
-        detalles_producto = obtener_detalles_producto(producto_id)
-        
-        if detalles_producto:
-            # Adjuntar la calificación predicha
-            detalles_producto['rating'] = float(prediccion.est)
-            recomendaciones.append(detalles_producto)
+        if not productos_comerciante:
+            return jsonify({'error': 'No se encontraron productos para el comerciante.'}), 404
+
+        # Obtener todos los productos para los cuales hacer recomendaciones
+        all_product_ids = calificaciones_df['producto_id'].unique()
+
+        recomendaciones = []
+        for producto_id in all_product_ids:
+            # Saltar los productos que ya están en el inventario del comerciante
+            if producto_id in productos_comerciante:
+                continue
+
+            # Hacer una predicción usando SVD
+            prediccion = algo.predict(uid='global_user', iid=producto_id)
+
+            # Obtener detalles del producto desde la API de Node.js
+            detalles_producto = obtener_detalles_producto(producto_id)
+
+            if detalles_producto:
+                # Adjuntar la calificación predicha
+                detalles_producto['rating'] = float(prediccion.est)
+                recomendaciones.append(detalles_producto)
+
+        # Ordenar las recomendaciones por calificación predicha
+        recomendaciones = sorted(recomendaciones, key=lambda x: x['rating'], reverse=True)
+
+        # Limitar a 6 productos recomendados
+        recomendaciones = recomendaciones[:6]
+
+        return jsonify(recomendaciones)
     
-    # Ordenar las recomendaciones por calificación predicha
-    recomendaciones = sorted(recomendaciones, key=lambda x: x['rating'], reverse=True)[:10]
-    
-    return jsonify(recomendaciones)
+    except Exception as e:
+        print(f"Error en la función de recomendaciones: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     print("Servidor Flask iniciado con SVD...")
