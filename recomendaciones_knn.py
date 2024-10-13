@@ -1,7 +1,7 @@
-from flask import Flask, jsonify
-from flask_cors import CORS  # Importar CORS
-import pandas as pd
-from sklearn.neighbors import NearestNeighbors
+from flask import Flask, jsonify # type: ignore
+from flask_cors import CORS  # type: ignore # Importar CORS
+import pandas as pd # type: ignore
+from sklearn.neighbors import NearestNeighbors # type: ignore
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas las rutas
