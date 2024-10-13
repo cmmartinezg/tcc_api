@@ -1,54 +1,78 @@
 from flask import Flask, jsonify
-from flask_cors import CORS  # Importar CORS
+from flask_cors import CORS
+import requests
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors
+from sklearn.preprocessing import LabelEncoder
 
 app = Flask(__name__)
-CORS(app)  # Habilitar CORS para todas las rutas
+CORS(app)
 
-# Cargar los datos del CSV
-data = pd.read_csv('productos_actualizados.csv')
+# Función para obtener productos desde la API de Node.js
+def obtener_productos():
+    try:
+        response = requests.get('http://localhost:3000/api/productos')
+        response.raise_for_status()
+        productos = response.json()
 
-# Imprimir las columnas para verificar
-print("Columnas encontradas en el CSV:", data.columns)
+        # Convertir los productos a un DataFrame de pandas
+        df_productos = pd.DataFrame(productos)
 
-# Convertir el ID del producto a entero
-data['id'] = data['id'].astype(int)
+        # Asegurarnos de que el precio es numérico
+        df_productos['precio'] = pd.to_numeric(df_productos['precio'], errors='coerce')
 
-# Extraer las características necesarias
-features = ['precio']  # Puedes agregar más características si es necesario
+        # Codificar las categorías a valores numéricos
+        label_encoder = LabelEncoder()
+        df_productos['categoria_encoded'] = label_encoder.fit_transform(df_productos['categoria'])
 
-# Inicializar el modelo KNN
-knn = NearestNeighbors(n_neighbors=5, metric='euclidean')
-knn.fit(data[features])
+        return df_productos
+    except Exception as e:
+        print(f"Error al obtener los productos desde la API de Node.js: {e}")
+        return None
 
-@app.route('/recomendaciones_knn/<int:product_id>', methods=['GET'])
-def get_recommendations(product_id):
-    # Obtener el producto correspondiente por ID
-    product_idx = data.index[data['id'] == product_id].tolist()
-    
-    if not product_idx:
-        return jsonify([]), 404  # Retornar una lista vacía si no se encuentra el ID
+# Cargar los productos desde la API de Node.js
+productos = obtener_productos()
 
-    product_idx = product_idx[0]
+# Verificar el contenido del DataFrame
+if productos is not None:
+    print("Columnas en el DataFrame:", productos.columns.tolist())
+    print("Primeras filas del DataFrame:\n", productos.head())
+else:
+    print("Error: No se pudieron cargar los productos desde la base de datos.")
+    exit()
 
-    # Calcular las recomendaciones
-    distances, indices = knn.kneighbors([data.iloc[product_idx][features]])
-    
+# Preparar los datos utilizando tanto el precio como la categoría codificada
+X = productos[['precio', 'categoria_encoded']].values
+
+# Inicializar el modelo KNN con más vecinos cercanos 
+knn = NearestNeighbors(n_neighbors=5)
+knn.fit(X)
+
+@app.route('/recomendaciones_knn/<int:producto_id>', methods=['GET'])
+def get_recommendations(producto_id):
+    # Obtener el producto específico basado en el ID
+    producto_actual = productos[productos['id'] == producto_id]
+
+    if producto_actual.empty:
+        return jsonify({"mensaje": f"Producto con ID {producto_id} no encontrado."}), 404
+
+    # Calcular las recomendaciones basadas en el precio y la categoría
+    distancia, indices = knn.kneighbors([[producto_actual['precio'].values[0], producto_actual['categoria_encoded'].values[0]]])
+
     # Obtener los productos recomendados
-    recommended_products = data.iloc[indices[0]].to_dict(orient='records')
+    productos_recomendados = productos.iloc[indices[0]].to_dict(orient='records')
 
-    # Eliminar el producto original de las recomendaciones
-    recommended_products = [p for p in recommended_products if p['id'] != product_id]
+    # Eliminar el producto actual de las recomendaciones (si está presente)
+    productos_recomendados = [p for p in productos_recomendados if p['id'] != producto_id]
 
-    # Imprimir los productos recomendados en la consola para verificar
-    print(f"Recomendaciones para el producto con ID {product_id}:")
-    for prod in recommended_products:
-        print(f"ID: {prod['id']}, Nombre: {prod['nombre']}, Precio: {prod['precio']}")
+    # Imprimir las recomendaciones para verificar en la consola
+    print(f"Recomendaciones para el producto {producto_id}:")
+    for prod in productos_recomendados:
+        print(f"ID: {prod['id']}, Nombre: {prod['nombre']}, Precio: {prod['precio']}, Categoría: {prod['categoria']}")
 
     # Devolver las recomendaciones como JSON
-    return jsonify(recommended_products)
+    return jsonify(productos_recomendados)
 
 if __name__ == '__main__':
-    print("Servidor Flask iniciado. Probando recomendaciones en el servidor...")
+    print("Servidor Flask iniciado...")
     app.run(port=5001)

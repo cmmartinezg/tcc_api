@@ -288,5 +288,18 @@ router.put('/:id', upload.none(), async (req, res) => {
 });
 
 
+// Ruta para obtener todos los productos
+router.get('/productos', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM productos');
+        res.json(result.rows);  // Devuelve los productos en formato JSON
+    } catch (err) {
+        console.error('Error al obtener productos:', err);
+        res.status(500).send('Error al obtener productos');
+    }
+});
+
+
+
 module.exports = router;
 
