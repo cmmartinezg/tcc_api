@@ -353,7 +353,28 @@ router.get('/api/productos', async (req, res) => {
       res.status(500).send('Error al obtener productos');
     }
   });
-  
+
+  // Ruta para obtener productos por categoría
+  router.get('/categoria/:nombreCategoria', async (req, res) => {
+    const { nombreCategoria } = req.params;
+
+    try {
+        const result = await pool.query(
+            'SELECT * FROM productos WHERE LOWER(categoria) = LOWER($1)', 
+            [nombreCategoria]
+        );
+
+        if (result.rows.length > 0) {
+            res.json(result.rows);
+        } else {
+            res.status(404).json({ mensaje: 'No se encontraron productos en esta categoría.' });
+        }
+    } catch (error) {
+        console.error('Error al obtener productos:', error);
+        res.status(500).json({ error: 'Error al obtener productos.' });
+    }
+});
+
 
 module.exports = router;
 

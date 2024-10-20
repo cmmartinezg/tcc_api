@@ -73,6 +73,19 @@ def get_recommendations(producto_id):
     # Devolver las recomendaciones como JSON
     return jsonify(productos_recomendados)
 
+@app.route('/recomendaciones_categoria/<categoria>', methods=['GET'])
+def get_recommendaciones_categoria(categoria):
+    # Filtrar productos por categoría
+    productos_categoria = productos[productos['categoria'].str.lower() == categoria.lower()]
+
+    if productos_categoria.empty:
+        return jsonify({"mensaje": f"No se encontraron productos para la categoría: {categoria}."}), 404
+
+    # Convertir productos recomendados a JSON
+    productos_recomendados = productos_categoria.to_dict(orient='records')
+
+    return jsonify(productos_recomendados)
+
 if __name__ == '__main__':
     print("Servidor Flask iniciado...")
     app.run(port=5001)
