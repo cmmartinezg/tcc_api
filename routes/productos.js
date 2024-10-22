@@ -298,26 +298,42 @@ router.get('/productos', async (req, res) => {
         res.status(500).send('Error al obtener productos');
     }
 });
-// Ruta para obtener productos por categoría
+
+// Ruta para obtener productos por categoría con filtros de precio y ordenación
 router.get('/categoria/:nombreCategoria', async (req, res) => {
     const { nombreCategoria } = req.params;
+    const { min_precio, max_precio, ordenar } = req.query;
+
+    let query = 'SELECT * FROM productos WHERE LOWER(categoria) = LOWER($1)';
+    const params = [nombreCategoria];
+
+    if (min_precio) {
+        query += ` AND precio >= $${params.length + 1}`;
+        params.push(min_precio);
+    }
+
+    if (max_precio) {
+        query += ` AND precio <= $${params.length + 1}`;
+        params.push(max_precio);
+    }
+
+    if (ordenar === 'precio-asc') {
+        query += ' ORDER BY precio ASC';
+    } else if (ordenar === 'precio-desc') {
+        query += ' ORDER BY precio DESC';
+    } else if (ordenar === 'nombre') {
+        query += ' ORDER BY nombre ASC';
+    }
 
     try {
-        const result = await pool.query(
-            'SELECT * FROM productos WHERE categoria = $1', 
-            [nombreCategoria]
-        );
-        
-        if (result.rows.length > 0) {
-            res.json(result.rows);
-        } else {
-            res.status(404).json({ mensaje: 'No se encontraron productos en esta categoría.' });
-        }
+        const result = await pool.query(query, params);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error al obtener productos:', error);
         res.status(500).json({ error: 'Error al obtener productos.' });
     }
 });
+
 
 // Ruta para obtener productos con filtros de precio y ordenación
 router.get('/api/productos', async (req, res) => {
@@ -353,7 +369,28 @@ router.get('/api/productos', async (req, res) => {
       res.status(500).send('Error al obtener productos');
     }
   });
-  
+
+  // Ruta para obtener productos por categoría
+//   router.get('/categoria/:nombreCategoria', async (req, res) => {
+//     const { nombreCategoria } = req.params;
+
+//     try {
+//         const result = await pool.query(
+//             'SELECT * FROM productos WHERE LOWER(categoria) = LOWER($1)', 
+//             [nombreCategoria]
+//         );
+
+//         if (result.rows.length > 0) {
+//             res.json(result.rows);
+//         } else {
+//             res.status(404).json({ mensaje: 'No se encontraron productos en esta categoría.' });
+//         }
+//     } catch (error) {
+//         console.error('Error al obtener productos:', error);
+//         res.status(500).json({ error: 'Error al obtener productos.' });
+//     }
+// });
+
 
 module.exports = router;
 
