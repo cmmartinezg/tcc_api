@@ -256,36 +256,32 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// Actualizar un producto por ID
-router.put('/:id', upload.none(), async (req, res) => {
+// API para actualizar un producto
+router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { nombre, descripcion, precio, categoria, foto_url, id_comerciante, stock } = req.body;
-
-    // Validar que todos los campos requeridos estén presentes
-    if (!nombre || !descripcion || !precio || !categoria || !foto_url || !id_comerciante || stock == null) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    const { nombre, descripcion, precio, foto_url, stock, id_comerciante } = req.body;
+  
+    if (!nombre || !descripcion || !precio || !foto_url || stock == null || !id_comerciante) {
+      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
     }
-
-    // Validar que el stock es un número entero no negativo
-    if (isNaN(stock) || parseInt(stock) < 0) {
-        return res.status(400).json({ error: 'El campo stock debe ser un número entero no negativo' });
-    }
-
+  
     try {
-        const result = await pool.query(
-            'UPDATE productos SET nombre = $1, descripcion = $2, precio = $3, categoria = $4, foto_url = $5, id_comerciante = $6, stock = $7 WHERE id = $8 RETURNING *',
-            [nombre, descripcion, parseFloat(precio), categoria, foto_url, id_comerciante, parseInt(stock), id]
-        );
-        if (result.rows.length === 0) {
-            return res.status(404).send('Producto no encontrado');
-        }
-
-        res.json({ mensaje: 'Producto actualizado exitosamente', producto: result.rows[0] });
+      const result = await pool.query(
+        'UPDATE productos SET nombre = $1, descripcion = $2, precio = $3, foto_url = $4, stock = $5, id_comerciante = $6 WHERE id = $7 RETURNING *',
+        [nombre, descripcion, precio, foto_url, stock, id_comerciante, id]
+      );
+  
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Producto no encontrado' });
+      }
+  
+      res.json({ producto: result.rows[0] });
     } catch (err) {
-        console.error('Error al actualizar producto:', err);
-        res.status(500).send(err.message);
+      console.error('Error al actualizar producto:', err);
+      res.status(500).json({ error: 'Error al actualizar producto' });
     }
-});
+  });
+  
 
 
 // Ruta para obtener todos los productos
@@ -369,6 +365,21 @@ router.get('/api/productos', async (req, res) => {
       res.status(500).send('Error al obtener productos');
     }
   });
+
+  // Ruta para obtener el total de productos sin stock
+  router.get('/productos/sin-stock', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT COUNT(*) AS total FROM productos WHERE stock = 0');
+        res.json({ total: result.rows[0].total });
+    } catch (error) {
+        console.error('Error al obtener productos sin stock:', error);
+        res.status(500).json({ error: 'Error al cargar productos sin stock' });
+    }
+});
+
+
+module.exports = router;
+
 
   // Ruta para obtener productos por categoría
 //   router.get('/categoria/:nombreCategoria', async (req, res) => {
