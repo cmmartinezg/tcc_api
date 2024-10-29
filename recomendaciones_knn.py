@@ -107,4 +107,4 @@ def get_recommendaciones_categoria(categoria):
 
 if __name__ == '__main__':
     print("Servidor Flask iniciado...")
-    app.run(port=5001)
+    app.run(host='0.0.0.0', port=5001)
