@@ -4,6 +4,8 @@ import requests
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import LabelEncoder
+import os
+os.environ["LOKY_MAX_CPU_COUNT"] = "1"
 
 app = Flask(__name__)
 CORS(app)
@@ -56,22 +58,38 @@ def get_recommendations(producto_id):
     if producto_actual.empty:
         return jsonify({"mensaje": f"Producto con ID {producto_id} no encontrado."}), 404
 
-    # Calcular las recomendaciones basadas en el precio y la categoría
-    distancia, indices = knn.kneighbors([[producto_actual['precio'].values[0], producto_actual['categoria_encoded'].values[0]]])
+    # Obtener la categoría del producto actual
+    categoria_actual = producto_actual['categoria'].values[0]
 
-    # Obtener los productos recomendados
-    productos_recomendados = productos.iloc[indices[0]].to_dict(orient='records')
+    # Filtrar productos por la misma categoría
+    productos_categoria = productos[productos['categoria'] == categoria_actual]
 
-    # Eliminar el producto actual de las recomendaciones (si está presente)
+    # Verificar si hay suficientes productos en la categoría
+    if len(productos_categoria) <= 1:
+        return jsonify({"mensaje": f"No hay suficientes productos en la categoría: {categoria_actual}."}), 404
+
+    # Preparar los datos para KNN usando los productos filtrados por categoría
+    X_categoria = productos_categoria[['precio', 'categoria_encoded']].values
+
+    # Inicializar y entrenar el modelo KNN con los productos de la categoría
+    knn = NearestNeighbors(n_neighbors=min(5, len(X_categoria)))
+    knn.fit(X_categoria)
+
+    # Encontrar los vecinos más cercanos al producto actual
+    distancia, indices = knn.kneighbors([[producto_actual['precio'].values[0], 
+                                          producto_actual['categoria_encoded'].values[0]]])
+
+    # Obtener los productos recomendados (sin incluir el producto actual)
+    productos_recomendados = productos_categoria.iloc[indices[0]].to_dict(orient='records')
     productos_recomendados = [p for p in productos_recomendados if p['id'] != producto_id]
 
-    # Imprimir las recomendaciones para verificar en la consola
+    # Imprimir para ver los resultados en la consola
     print(f"Recomendaciones para el producto {producto_id}:")
     for prod in productos_recomendados:
         print(f"ID: {prod['id']}, Nombre: {prod['nombre']}, Precio: {prod['precio']}, Categoría: {prod['categoria']}")
 
-    # Devolver las recomendaciones como JSON
     return jsonify(productos_recomendados)
+
 
 @app.route('/recomendaciones_categoria/<categoria>', methods=['GET'])
 def get_recommendaciones_categoria(categoria):
