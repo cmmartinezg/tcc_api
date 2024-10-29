@@ -1,0 +1,26 @@
+Metadata-Version: 2.1
+Name: neighbors
+Version: 0.1.0
+Summary: A Python package for performing collaborative filtering on social and emotion datasets
+Home-page: http://github.com/cosanlab/neighbors
+Maintainer: Cosan Lab
+Maintainer-email: eshin.jolly@dartmouth.edu
+License: MIT
+Keywords: emotion,collaborative filtering,recommender,machine-learning
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: pandas (>=1.0)
+Requires-Dist: scipy
+Requires-Dist: matplotlib
+Requires-Dist: seaborn
+Requires-Dist: numba
+
+UNKNOWN
+
