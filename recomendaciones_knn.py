@@ -13,7 +13,8 @@ CORS(app)
 # Función para obtener productos desde la API de Node.js
 def obtener_productos():
     try:
-        response = requests.get('http://localhost:3000/api/productos')
+        #response = requests.get('http://localhost:3000/api/productos')
+        response = requests.get('https://tcc-api-nodejs.onrender.com/api/productos')
         response.raise_for_status()
         productos = response.json()
 
