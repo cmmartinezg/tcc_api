@@ -259,16 +259,12 @@ router.delete('/:id', async (req, res) => {
 // API para actualizar un producto
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { nombre, descripcion, precio, foto_url, stock, id_comerciante } = req.body;
-  
-    if (!nombre || !descripcion || !precio || !foto_url || stock == null || !id_comerciante) {
-      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-    }
+    const { nombre, descripcion, precio, foto_url, stock, categoria, id_comerciante } = req.body;
   
     try {
       const result = await pool.query(
-        'UPDATE productos SET nombre = $1, descripcion = $2, precio = $3, foto_url = $4, stock = $5, id_comerciante = $6 WHERE id = $7 RETURNING *',
-        [nombre, descripcion, precio, foto_url, stock, id_comerciante, id]
+        'UPDATE productos SET nombre = $1, descripcion = $2, precio = $3, foto_url = $4, stock = $5, categoria = $6, id_comerciante = $7 WHERE id = $8 RETURNING *',
+        [nombre, descripcion, precio, foto_url, stock, categoria, id_comerciante, id]
       );
   
       if (result.rows.length === 0) {
@@ -374,6 +370,17 @@ router.get('/api/productos', async (req, res) => {
     } catch (error) {
         console.error('Error al obtener productos sin stock:', error);
         res.status(500).json({ error: 'Error al cargar productos sin stock' });
+    }
+});
+
+router.get('/', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM productos');
+        console.log('Productos obtenidos:', result.rows); // Verifica la URL aquí
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error al obtener productos:', err);
+        res.status(500).send(err.message);
     }
 });
 
