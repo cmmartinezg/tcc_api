@@ -11,10 +11,10 @@ try:
 
     # Ejecutar los scripts de Python en paralelo
     print("Ejecutando recomendaciones_knn.py...")
-    knn_process = subprocess.Popen([r'python', 'recomendaciones_knn.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    knn_process = subprocess.Popen([r'C:\Users\carlo\tcc_api\venv\Scripts\python.exe', 'recomendaciones_knn.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
     print("Ejecutando recomendaciones_svd.py...")
-    svd_process = subprocess.Popen([r'python', 'recomendaciones_svd.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    svd_process = subprocess.Popen([r'C:\Users\carlo\tcc_api\venv\Scripts\python.exe', 'recomendaciones_svd.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Esperar a que terminen los procesos de Python y obtener su salida
     knn_stdout, knn_stderr = knn_process.communicate()
