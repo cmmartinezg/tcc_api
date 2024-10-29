@@ -10,7 +10,8 @@ CORS(app)
 # Función para obtener las calificaciones desde tu API de Node.js
 def obtener_calificaciones():
     try:
-        response = requests.get('http://localhost:3000/api/calificaciones')
+        #response = requests.get('http://localhost:3000/api/calificaciones')
+        response = requests.get('https://tcc-api-nodejs.onrender.com/api/calificaciones')
         response.raise_for_status()  # Levanta un error si la solicitud falla
         calificaciones = response.json()
 
@@ -124,4 +125,5 @@ def get_recommendations():
 
 if __name__ == '__main__':
     print("Servidor Flask iniciado con SVD...")
-    app.run(port=5002, debug=True)
+    app.run(host='0.0.0.0', port=5002)
+
