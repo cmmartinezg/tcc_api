@@ -1,11 +1,9 @@
-// preferences.js
 const express = require('express');
 const router = express.Router();
 const pool = require('../conexionDB');
-
-// Ruta para guardar preferencias
 router.post('/guardar-preferencias', async (req, res) => {
     const { user_id, categories } = req.body;
+    console.log('user_id recibido en el servidor:', user_id); // Confirma que este es el ID correcto
 
     if (!user_id || !categories) {
         return res.status(400).json({ message: 'Faltan datos para procesar la solicitud' });
@@ -24,5 +22,6 @@ router.post('/guardar-preferencias', async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
 
 module.exports = router;
