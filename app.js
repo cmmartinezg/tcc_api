@@ -35,6 +35,7 @@ const loginRouter = require('./routes/login');
 const calificacionesRouter = require('./routes/calificaciones');
 //const wishlistRouter = require('./routes/wishlist'); 
 const carritoRouter = require('./routes/carrito'); 
+const preferenciasRouter = require('./routes/preferencias');
 
 
 // Usar routers
@@ -47,6 +48,7 @@ app.use('/api/login', loginRouter);
 app.use('/api/calificaciones', calificacionesRouter); 
 //app.use('/api/wishlist', wishlistRouter); 
 app.use('/api/carrito', carritoRouter); 
+app.use('/api', preferenciasRouter);
 
 
 // Manejo de errores
