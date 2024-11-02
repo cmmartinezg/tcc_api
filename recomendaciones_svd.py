@@ -1,129 +1,40 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from surprise import SVD, Dataset, Reader
 import pandas as pd
+from surprise import SVD, Dataset, Reader
 import requests
 
 app = Flask(__name__)
 CORS(app)
 
-# Función para obtener las calificaciones desde tu API de Node.js
 def obtener_calificaciones():
-    try:
-        #response = requests.get('http://localhost:3000/api/calificaciones')
-        response = requests.get('https://tcc-api-nodejs.onrender.com/api/calificaciones')
-        response.raise_for_status()  # Levanta un error si la solicitud falla
-        calificaciones = response.json()
+    response = requests.get('http://localhost:3000/api/calificaciones')
+    return pd.DataFrame(response.json())
 
-        # Convertir los resultados en un DataFrame de pandas
-        df_calificaciones = pd.DataFrame(calificaciones)
+def entrenar_svd(df_calificaciones):
+    reader = Reader(rating_scale=(1, 5))
+    data = Dataset.load_from_df(df_calificaciones[['usuario_id', 'producto_id', 'calificacion']], reader)
+    trainset = data.build_full_trainset()
+    algo = SVD()
+    algo.fit(trainset)
+    return algo
 
-        return df_calificaciones
-    except Exception as e:
-        print(f"Error al obtener las calificaciones desde la API de Node.js: {e}")
-        return None
-
-# Función para obtener los productos de un comerciante desde tu API de Node.js
-def obtener_productos_comerciante(comerciante_id):
-    try:
-        response = requests.get(f'http://localhost:3000/api/productos?comercianteId={comerciante_id}')
-        response.raise_for_status()
-        productos = response.json()
-
-        # Obtener solo los IDs de los productos
-        productos_ids = [producto['id'] for producto in productos]
-        return productos_ids
-    except Exception as e:
-        print(f"Error al obtener los productos del comerciante {comerciante_id}: {e}")
-        return []
-
-# Obtener las calificaciones desde la API de Node.js
-calificaciones_df = obtener_calificaciones()
-
-# Verificar que se han obtenido las calificaciones correctamente
-if calificaciones_df is not None:
-    print("Columnas en el DataFrame:", calificaciones_df.columns.tolist())
-    print("Primeras filas del DataFrame:\n", calificaciones_df.head())
-else:
-    print("Error: No se pudieron cargar las calificaciones desde la base de datos.")
-    exit()
-
-# Preparar los datos para Surprise SVD
-reader = Reader(rating_scale=(1, 5))
-data = Dataset.load_from_df(calificaciones_df[['usuario_id', 'producto_id', 'calificacion']], reader)
-
-# Entrenar el modelo SVD
-trainset = data.build_full_trainset()
-algo = SVD()
-algo.fit(trainset)
-
-# Función para obtener detalles del producto desde tu API de Node.js
-def obtener_detalles_producto(producto_id):
-    try:
-        response = requests.get(f'http://localhost:3000/api/productos/{producto_id}')
-        response.raise_for_status()
-        producto = response.json()
-
-        # Devolver los detalles relevantes del producto
-        return {
-            'id': producto['id'],
-            'nombre': producto['nombre'],
-            'descripcion': producto['descripcion'],
-            'precio': producto['precio'],
-            'foto_url': producto.get('foto_url', 'default_image.jpg')  # Asegurarnos de que siempre haya una imagen
-        }
-    except Exception as e:
-        print(f"Error al obtener detalles del producto {producto_id}: {e}")
-        return None
-
-# Definir la ruta de recomendaciones
 @app.route('/recomendaciones', methods=['GET'])
-def get_recommendations():
-    try:
-        comerciante_id = request.args.get('comercianteId', type=int)
+def recomendaciones():
+    comerciante_id = request.args.get('comercianteId', type=int)
+    algo = entrenar_svd(obtener_calificaciones())
 
-        if not comerciante_id:
-            return jsonify({'error': 'comercianteId no proporcionado'}), 400
+    productos = requests.get(f'http://localhost:3000/api/productos?comercianteId={comerciante_id}').json()
+    recomendaciones = []
 
-        # Obtener todos los productos del comerciante para no recomendarlos
-        productos_comerciante = obtener_productos_comerciante(comerciante_id)
+    for producto in productos:
+        prediccion = algo.predict(uid='global_user', iid=producto['id']).est
+        producto['rating'] = prediccion
+        recomendaciones.append(producto)
 
-        if not productos_comerciante:
-            return jsonify({'error': 'No se encontraron productos para el comerciante.'}), 404
-
-        # Obtener todos los productos para los cuales hacer recomendaciones
-        all_product_ids = calificaciones_df['producto_id'].unique()
-
-        recomendaciones = []
-        for producto_id in all_product_ids:
-            # Saltar los productos que ya están en el inventario del comerciante
-            if producto_id in productos_comerciante:
-                continue
-
-            # Hacer una predicción usando SVD
-            prediccion = algo.predict(uid='global_user', iid=producto_id)
-
-            # Obtener detalles del producto desde la API de Node.js
-            detalles_producto = obtener_detalles_producto(producto_id)
-
-            if detalles_producto:
-                # Adjuntar la calificación predicha
-                detalles_producto['rating'] = float(prediccion.est)
-                recomendaciones.append(detalles_producto)
-
-        # Ordenar las recomendaciones por calificación predicha
-        recomendaciones = sorted(recomendaciones, key=lambda x: x['rating'], reverse=True)
-
-        # Limitar a 6 productos recomendados
-        recomendaciones = recomendaciones[:6]
-
-        return jsonify(recomendaciones)
-    
-    except Exception as e:
-        print(f"Error en la función de recomendaciones: {e}")
-        return jsonify({'error': str(e)}), 500
+    recomendaciones = sorted(recomendaciones, key=lambda x: x['rating'], reverse=True)
+    return jsonify(recomendaciones[:5])
 
 if __name__ == '__main__':
-    print("Servidor Flask iniciado con SVD...")
-    app.run(host='0.0.0.0', port=5002)
-
+    print("Servidor Flask SVD iniciado...")
+    app.run(port=5002, debug=True)
