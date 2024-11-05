@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../conexionDB');
 router.post('/guardar-preferencias', async (req, res) => {
     const { user_id, categories } = req.body;
-    console.log('user_id recibido en el servidor:', user_id); // Confirma que este es el ID correcto
+    console.log('user_id recibido en el servidor:', user_id); 
 
     if (!user_id || !categories) {
         return res.status(400).json({ message: 'Faltan datos para procesar la solicitud' });

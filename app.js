@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express'); 
 const cors = require('cors');
 const app = express();
 
@@ -6,7 +6,6 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
 
 // Middleware de logging personalizado
 app.use((req, res, next) => {
@@ -33,12 +32,12 @@ const comerciantesRouter = require('./routes/comerciantes');
 const comprasRouter = require('./routes/compras');
 const loginRouter = require('./routes/login');
 const calificacionesRouter = require('./routes/calificaciones');
-//const wishlistRouter = require('./routes/wishlist'); 
 const carritoRouter = require('./routes/carrito'); 
-const preferencesRouter = require('./routes/preferencias');
+const recomendacionesRouter = require('./routes/recomendaciones');
+const gustosRouter = require('./routes/gustos');
+const categoriasRouter = require('./routes/categorias'); 
 
-
-// Usar routers
+// Usar routers 
 app.use('/api/productos', productosRouter);
 app.use('/api/clics_productos', clicsProductosRouter);
 app.use('/api/usuarios', usuariosRouter);
@@ -46,10 +45,10 @@ app.use('/api/comerciantes', comerciantesRouter);
 app.use('/api/compras', comprasRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/calificaciones', calificacionesRouter); 
-//app.use('/api/wishlist', wishlistRouter); 
 app.use('/api/carrito', carritoRouter); 
-app.use('/api', preferencesRouter);
-
+app.use('/api/gustos', gustosRouter); 
+app.use('/api/recomendaciones', recomendacionesRouter); 
+app.use('/api', categoriasRouter);
 
 // Manejo de errores
 app.use((err, req, res, next) => {
