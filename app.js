@@ -36,7 +36,7 @@ const recomendacionesRouter = require('./routes/recomendaciones');
 const gustosRouter = require('./routes/gustos');
 const categoriasRouter = require('./routes/categorias'); 
 const preferenciasRouter = require('./routes/preferencias');
-const calificacionesRouter = require('./calificaciones');
+const calificacionesRouter = require('./routes/calificaciones')
 
 // Usar routers 
 app.use('/api/productos', productosRouter);
@@ -50,7 +50,9 @@ app.use('/api/gustos', gustosRouter);
 app.use('/api/recomendaciones', recomendacionesRouter); 
 app.use('/api', categoriasRouter);
 app.use('/api/preferencias', preferenciasRouter);
-app.use('/api', calificacionesRouter);
+app.use('/api/calificaciones', calificacionesRouter);
+
+
 // Manejo de errores
 app.use((err, req, res, next) => {
   console.error('Error:', err);
