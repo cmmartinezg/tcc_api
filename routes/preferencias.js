@@ -24,4 +24,32 @@ router.post('/guardar-preferencias', async (req, res) => {
 });
 
 
+
+// Obtener preferencias de un usuario
+router.get('/obtener-preferencias/:user_id', async (req, res) => {
+    const { user_id } = req.params;
+
+    if (!user_id) {
+        return res.status(400).json({ message: 'Falta el ID de usuario' });
+    }
+
+    try {
+        const result = await pool.query(
+            'SELECT categoria_id FROM gustos_usuario WHERE usuario_id = $1',
+            [user_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron preferencias para este usuario' });
+        }
+
+        const categorias = result.rows.map(row => row.categoria_id);
+        res.json({ categorias });
+    } catch (error) {
+        console.error('Error al obtener preferencias:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+
 module.exports = router;
