@@ -49,7 +49,7 @@ app.use('/api/login', loginRouter);
 app.use('/api/carrito', carritoRouter); 
 app.use('/api/gustos', gustosRouter); 
 app.use('/api/recomendaciones', recomendacionesRouter); 
-app.use('/api', categoriasRouter);
+app.use('/api/categorias', categoriasRouter);
 app.use('/api/preferencias', preferenciasRouter);
 app.use('/api/calificaciones', calificacionesRouter);
 app.use('/api/buscar', buscarRouter);
