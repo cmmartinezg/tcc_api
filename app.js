@@ -9,6 +9,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos HTTP permitidos
     allowedHeaders: ['Content-Type', 'Authorization'], // Headers permitidos
 }));
+
 require('dotenv').config();
 
 // Middleware para parsear JSON
@@ -62,7 +63,7 @@ app.use('/api/categorias', categoriasRouter);
 app.use('/api/preferencias', preferenciasRouter);
 app.use('/api/calificaciones', calificacionesRouter);
 app.use('/api/buscar', buscarRouter);
-app.use('/api/recuperar_contrasena', recuperarContrasenaRouter);
+app.use('/api/recuperar_contrasena', recuperarContrasenaRouter);  // Ruta de recuperación de contraseña
 
 // Middleware para manejo de errores
 app.use((err, req, res, next) => {
