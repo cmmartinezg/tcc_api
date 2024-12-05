@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
         await pool.query(query, [token, expiration, userId]);
 
         // Crear enlace de restablecimiento
-        const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+        const resetLink = `http://localhost:4000/reset-password?token=${token}`;
 
         // Configurar y enviar el correo
         const mailOptions = {
@@ -112,7 +112,7 @@ router.get('/reset-password', async (req, res) => {
 });
 
 // Endpoint para restablecer contraseña
-router.post('/reset-password', async (req, res) => {
+router.get('/reset-password', async (req, res) => {
     const { token, newPassword } = req.body;
 
     if (!token || !newPassword) {
