@@ -3,14 +3,14 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
+require('dotenv').config();
+
 // Configuración de CORS
 app.use(cors({
-    origin: ['http://127.0.0.1:5501', 'http://localhost:5500'], // Orígenes permitidos
+    origin: ['http://localhost:4000', 'http://127.0.0.1:5501'], // Permitir solicitudes desde el frontend en el puerto 4000 y otros orígenes que necesites
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos HTTP permitidos
     allowedHeaders: ['Content-Type', 'Authorization'], // Headers permitidos
 }));
-
-require('dotenv').config();
 
 // Middleware para parsear JSON
 app.use(express.json());
@@ -63,7 +63,7 @@ app.use('/api/categorias', categoriasRouter);
 app.use('/api/preferencias', preferenciasRouter);
 app.use('/api/calificaciones', calificacionesRouter);
 app.use('/api/buscar', buscarRouter);
-app.use('/api/recuperar_contrasena', recuperarContrasenaRouter);  // Ruta de recuperación de contraseña
+app.use('/api/recuperar_contrasena', recuperarContrasenaRouter); // Ruta de recuperación de contraseña
 
 // Middleware para manejo de errores
 app.use((err, req, res, next) => {

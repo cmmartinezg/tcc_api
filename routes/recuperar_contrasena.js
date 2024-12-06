@@ -5,7 +5,7 @@ const transporter = require('./transporter'); // Importa el transporter
 const bcrypt = require('bcryptjs'); // Agregado para encriptar la nueva contraseña
 const router = express.Router();
 
-// Endpoint para solicitar recuperación de contraseña
+// Endpoint para solicitar recuperación de contraseña (envío de correo)
 router.post('/', async (req, res) => {
     const { email } = req.body;
 
@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Endpoint para manejar la solicitud GET con el token
+// Endpoint para verificar el token (GET /reset-password)
 router.get('/reset-password', async (req, res) => {
     const { token } = req.query;
 
@@ -102,17 +102,16 @@ router.get('/reset-password', async (req, res) => {
             return res.status(400).json({ message: 'El token es inválido o ha expirado.' });
         }
 
-        // Aquí puedes redirigir a una página en tu frontend para cambiar la contraseña
+        // Si el token es válido, permitir el restablecimiento de contraseña
         res.json({ message: 'Token válido. Ahora puedes cambiar tu contraseña.' });
-
     } catch (error) {
         console.error('Error al verificar el token:', error);
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
 });
 
-// Endpoint para restablecer contraseña
-router.get('/reset-password', async (req, res) => {
+// Endpoint para restablecer la contraseña (POST /reset-password)
+router.post('/reset-password', async (req, res) => {
     const { token, newPassword } = req.body;
 
     if (!token || !newPassword) {
