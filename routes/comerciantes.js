@@ -8,9 +8,9 @@ const crypto = require('crypto');
 
 // Configuración de Cloudinary
 cloudinary.config({
-    cloud_name: 'dgugu3tnc',  // Tu Cloud Name
-    api_key: '895274873765826',   // Tu API Key
-    api_secret: 'lhpCrJaK2aZgPJsX7Q8pLFUoWsA' // Tu API Secret
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,  // Ajusta con tus variables
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // Configuración de Nodemailer para el envío de correos
@@ -22,11 +22,51 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Función para validar el formato del email
+function validarEmailFormato(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Ruta para validar email (para el frontend)
+router.get('/validar-email', async (req, res) => {
+    const { email } = req.query;
+
+    if (!email) {
+        return res.status(400).json({ error: "Se requiere el email." });
+    }
+
+    // Validar formato de email
+    if (!validarEmailFormato(email)) {
+        // Si el email no es válido en su formato, podemos devolver exists: false
+        // ya que no tiene sentido mostrarlo como 'tomado' si ni siquiera es un formato válido
+        return res.json({ exists: false });
+    }
+
+    try {
+        const emailExists = await pool.query('SELECT 1 FROM comerciantes WHERE email = $1', [email]);
+        const exists = emailExists.rows.length > 0;
+        return res.json({ exists });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 // Crear un nuevo comerciante (INSERT)
 router.post('/', async (req, res) => {
     const { nombre, email, contrasena, direccion, telefono, descripcion, enlace_tienda } = req.body;
 
     try {
+        // Validar campos obligatorios
+        if (!nombre || !email || !contrasena) {
+            return res.status(400).json({ error: "Nombre, email y contraseña son obligatorios." });
+        }
+
+        // Validar formato de email
+        if (!validarEmailFormato(email)) {
+            return res.status(400).json({ error: "El formato del email no es válido." });
+        }
+
         // Verificar si el correo electrónico ya está registrado
         const emailExists = await pool.query('SELECT * FROM comerciantes WHERE email = $1', [email]);
         if (emailExists.rows.length > 0) {
@@ -37,12 +77,13 @@ router.post('/', async (req, res) => {
         const hashedPassword = await bcrypt.hash(contrasena, 10);
 
         // Insertar el comerciante en la base de datos
-        const result = await pool.query(
-            'INSERT INTO comerciantes (nombre, email, contrasena, direccion, telefono, descripcion, enlace_tienda) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-            [nombre, email, hashedPassword, direccion, telefono, descripcion, enlace_tienda]
-        );
+        const insertQuery = `
+            INSERT INTO comerciantes (nombre, email, contrasena, direccion, telefono, descripcion, enlace_tienda)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
+        `;
+        const result = await pool.query(insertQuery, [nombre, email, hashedPassword, direccion, telefono, descripcion, enlace_tienda]);
 
-        // Enviar correo de verificación
+        // Generar token de verificación y link
         const verificationToken = crypto.randomBytes(20).toString('hex');
         const verificationLink = `${process.env.BASE_URL}/verify-email?token=${verificationToken}&email=${email}`;
 
@@ -53,20 +94,35 @@ router.post('/', async (req, res) => {
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Verificación de correo electrónico',
-            text: `Hola ${nombre},\n\nPor favor verifica tu correo electrónico haciendo clic en el siguiente enlace:\n\n${verificationLink}\n\nGracias.`
+            text: `Hola ${nombre},
+        
+        ¡Bienvenido a Click Store! Nos alegra mucho que te hayas registrado.
+        
+        Para activar tu cuenta y comenzar a disfrutar de nuestros servicios, por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:
+        
+        ${verificationLink}
+        
+        Si no fuiste tú quien solicitó esta cuenta, simplemente ignora este mensaje.
+        
+        ¡Gracias por confiar en nosotros!
+        
+        El equipo de Click Store`
         };
 
-        // Enviar el correo
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ error: "No se pudo enviar el correo de verificación." });
-            }
-            console.log('Correo de verificación enviado: ' + info.response);
-        });
+
+        // Enviar el correo de verificación
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log('Correo de verificación enviado a:', email);
+        } catch (error) {
+            console.error('Error al enviar el correo de verificación:', error);
+            return res.status(500).json({ error: "Comerciante registrado, pero no se pudo enviar el correo de verificación." });
+        }
 
         return res.json(result.rows[0]);
 
     } catch (err) {
+        console.error('Error al registrar comerciante:', err.message);
         return res.status(500).json({ error: err.message });
     }
 });
@@ -75,9 +131,13 @@ router.post('/', async (req, res) => {
 router.get('/verify-email', async (req, res) => {
     const { token, email } = req.query;
 
+    if (!token || !email) {
+        return res.status(400).json({ error: "Se requieren el token y el email para verificar." });
+    }
+
     try {
         const result = await pool.query('SELECT * FROM comerciantes WHERE email = $1 AND verification_token = $2', [email, token]);
-        
+
         if (result.rows.length === 0) {
             return res.status(400).json({ error: "El token de verificación es inválido o ha expirado." });
         }
@@ -88,6 +148,7 @@ router.get('/verify-email', async (req, res) => {
         return res.json({ message: "Correo electrónico verificado con éxito." });
 
     } catch (err) {
+        console.error('Error al verificar correo:', err.message);
         return res.status(500).json({ error: err.message });
     }
 });
@@ -98,6 +159,7 @@ router.get('/', async (req, res) => {
         const result = await pool.query('SELECT id, nombre, email, direccion, telefono, descripcion, enlace_tienda FROM comerciantes');
         return res.json(result.rows);
     } catch (err) {
+        console.error('Error al obtener comerciantes:', err.message);
         return res.status(500).json({ error: err.message });
     }
 });
@@ -115,6 +177,7 @@ router.get('/:id', async (req, res) => {
 
         return res.json(result.rows[0]);
     } catch (err) {
+        console.error('Error al obtener comerciante por ID:', err.message);
         return res.status(500).json({ error: err.message });
     }
 });
@@ -145,6 +208,7 @@ router.put('/:id', async (req, res) => {
         if (err.code === '23505') { // Violación de la unicidad del email
             return res.status(409).json({ error: "El email ya está registrado." });
         } else {
+            console.error('Error al actualizar comerciante:', err.message);
             return res.status(500).json({ error: err.message });
         }
     }
@@ -163,6 +227,7 @@ router.delete('/:id', async (req, res) => {
 
         return res.json({ message: "Comerciante eliminado exitosamente" });
     } catch (err) {
+        console.error('Error al eliminar comerciante:', err.message);
         return res.status(500).json({ error: err.message });
     }
 });
