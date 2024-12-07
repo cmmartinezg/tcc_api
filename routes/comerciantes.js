@@ -13,7 +13,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Configuración de Nodemailer para el envío de correos
+// Configuración Nodemailer
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -22,13 +22,13 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Función para validar el formato del email
+// Función para validar formato de email
 function validarEmailFormato(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
 
-// Ruta para validar email (para el frontend)
+// Ruta para validar email en tiempo real (GET /api/comerciantes/validar-email?email=...)
 router.get('/validar-email', async (req, res) => {
     const { email } = req.query;
 
@@ -36,10 +36,7 @@ router.get('/validar-email', async (req, res) => {
         return res.status(400).json({ error: "Se requiere el email." });
     }
 
-    // Validar formato de email
     if (!validarEmailFormato(email)) {
-        // Si el email no es válido en su formato, podemos devolver exists: false
-        // ya que no tiene sentido mostrarlo como 'tomado' si ni siquiera es un formato válido
         return res.json({ exists: false });
     }
 
@@ -52,7 +49,7 @@ router.get('/validar-email', async (req, res) => {
     }
 });
 
-// Crear un nuevo comerciante (INSERT)
+// Crear un nuevo comerciante (POST /api/comerciantes)
 router.post('/', async (req, res) => {
     const { nombre, email, contrasena, direccion, telefono, descripcion, enlace_tienda } = req.body;
 
@@ -62,7 +59,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: "Nombre, email y contraseña son obligatorios." });
         }
 
-        // Validar formato de email
+        // Validar formato del email
         if (!validarEmailFormato(email)) {
             return res.status(400).json({ error: "El formato del email no es válido." });
         }
@@ -73,21 +70,23 @@ router.post('/', async (req, res) => {
             return res.status(409).json({ error: "El email ya está registrado." });
         }
 
-        // Encriptar la contraseña antes de guardarla en la base de datos
+        // Encriptar la contraseña
         const hashedPassword = await bcrypt.hash(contrasena, 10);
 
-        // Insertar el comerciante en la base de datos
+        // Insertar el comerciante
         const insertQuery = `
             INSERT INTO comerciantes (nombre, email, contrasena, direccion, telefono, descripcion, enlace_tienda)
             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
         `;
         const result = await pool.query(insertQuery, [nombre, email, hashedPassword, direccion, telefono, descripcion, enlace_tienda]);
 
-        // Generar token de verificación y link
+        // Generar token de verificación
         const verificationToken = crypto.randomBytes(20).toString('hex');
-        const verificationLink = `${process.env.BASE_URL}/verify-email?token=${verificationToken}&email=${email}`;
 
-        // Guardar el token de verificación en la base de datos
+        // Ahora el enlace de verificación incluye tipo=comerciante
+        const verificationLink = `${process.env.BASE_URL}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(email)}&tipo=comerciante`;
+
+        // Guardar el token en la base de datos
         await pool.query('UPDATE comerciantes SET verification_token = $1 WHERE email = $2', [verificationToken, email]);
 
         const mailOptions = {
@@ -95,20 +94,19 @@ router.post('/', async (req, res) => {
             to: email,
             subject: 'Verificación de correo electrónico',
             text: `Hola ${nombre},
-        
-        ¡Bienvenido a Click Store! Nos alegra mucho que te hayas registrado.
-        
-        Para activar tu cuenta y comenzar a disfrutar de nuestros servicios, por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:
-        
-        ${verificationLink}
-        
-        Si no fuiste tú quien solicitó esta cuenta, simplemente ignora este mensaje.
-        
-        ¡Gracias por confiar en nosotros!
-        
-        El equipo de Click Store`
-        };
 
+¡Bienvenido a Click Store! Nos alegra mucho que te hayas registrado.
+
+Para activar tu cuenta y comenzar a disfrutar de nuestros servicios, por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:
+
+${verificationLink}
+
+Si no fuiste tú quien solicitó esta cuenta, simplemente ignora este mensaje.
+
+¡Gracias por confiar en nosotros!
+
+El equipo de Click Store`
+        };
 
         // Enviar el correo de verificación
         try {
@@ -127,7 +125,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Verificar el correo electrónico del comerciante (Verificación del token)
+// Verificar el correo electrónico del comerciante (GET /api/comerciantes/verify-email)
 router.get('/verify-email', async (req, res) => {
     const { token, email } = req.query;
 
@@ -153,10 +151,10 @@ router.get('/verify-email', async (req, res) => {
     }
 });
 
-// Obtener todos los comerciantes (GET)
+// Obtener todos los comerciantes (GET /api/comerciantes)
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT id, nombre, email, direccion, telefono, descripcion, enlace_tienda FROM comerciantes');
+        const result = await pool.query('SELECT id, nombre, email, direccion, telefono, descripcion, enlace_tienda, verified FROM comerciantes');
         return res.json(result.rows);
     } catch (err) {
         console.error('Error al obtener comerciantes:', err.message);
@@ -164,12 +162,15 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Obtener un comerciante por ID (GET)
+// Obtener un comerciante por ID (GET /api/comerciantes/:id)
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const result = await pool.query('SELECT id, nombre, email, direccion, telefono, descripcion, enlace_tienda FROM comerciantes WHERE id = $1', [id]);
+        const result = await pool.query(
+            'SELECT id, nombre, email, direccion, telefono, descripcion, enlace_tienda, verified FROM comerciantes WHERE id = $1',
+            [id]
+        );
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Comerciante no encontrado" });
@@ -182,7 +183,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Actualizar un comerciante (UPDATE)
+// Actualizar un comerciante (PUT /api/comerciantes/:id)
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { nombre, email, contrasena, direccion, telefono, descripcion, enlace_tienda } = req.body;
@@ -214,7 +215,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Eliminar un comerciante (DELETE)
+// Eliminar un comerciante (DELETE /api/comerciantes/:id)
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
 

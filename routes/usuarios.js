@@ -20,7 +20,7 @@ function validarEmailFormato(email) {
     return emailRegex.test(email);
 }
 
-// Validar si un email ya existe
+// Validar si un email ya existe (GET /api/usuarios/validar-email?email=...)
 router.get('/validar-email', async (req, res) => {
     const { email } = req.query;
 
@@ -43,7 +43,7 @@ router.get('/validar-email', async (req, res) => {
     }
 });
 
-// Crear nuevo usuario
+// Crear nuevo usuario (POST /api/usuarios)
 router.post('/', async (req, res) => {
     const { nombre, email, contrasena, direccion, telefono } = req.body;
 
@@ -74,7 +74,10 @@ router.post('/', async (req, res) => {
 
         // Generar token de verificación
         const verificationToken = crypto.randomBytes(20).toString('hex');
-        const verificationLink = `${process.env.BASE_URL}/api/usuarios/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`;
+        
+        // Después de insertar el usuario y generar el verificationToken
+        // Ajustamos el enlace para que apunte a verify-email.html con tipo=usuario
+        const verificationLink = `${process.env.BASE_URL}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(email)}&tipo=usuario`;
 
         // Guardar el token en la base de datos
         await pool.query('UPDATE usuarios SET verification_token = $1 WHERE email = $2', [verificationToken, email]);
@@ -119,7 +122,7 @@ El equipo de Click Store`
     }
 });
 
-// Verificar el correo electrónico del usuario
+// Verificar el correo electrónico del usuario (GET /api/usuarios/verify-email)
 router.get('/verify-email', async (req, res) => {
     const { token, email } = req.query;
 
@@ -143,7 +146,7 @@ router.get('/verify-email', async (req, res) => {
     }
 });
 
-// Obtener todos los usuarios (GET)
+// Obtener todos los usuarios (GET /api/usuarios)
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT id, nombre, email, direccion, telefono, verified FROM usuarios');
