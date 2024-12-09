@@ -59,7 +59,7 @@ def get_recommendations(producto_id):
 
     # Preparar los datos para el algoritmo KNN con los productos de la misma categoría
     X_categoria = productos_categoria[['precio', 'categoria_encoded']].values
-    knn = NearestNeighbors(n_neighbors=min(10, len(X_categoria)))
+    knn = NearestNeighbors(n_neighbors=min(20, len(X_categoria)))
     knn.fit(X_categoria)
 
     # Realizar la predicción para obtener productos similares
